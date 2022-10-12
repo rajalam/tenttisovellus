@@ -7,6 +7,8 @@ const Kysymys = (props) => {
     <div>{props.kysymys.nimi}
       
     </div>
+    /* tänne Kysymys funktion sisään voi propseista kaivaa myös Vastausvaihtoehtojen tulostuksen, 
+    ettei tarvitse sisäkkäisiä mappeja käyttää App.js:ssä, vt. Katrin ratkaisu */
     
   );
 }
