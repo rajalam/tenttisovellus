@@ -2,8 +2,8 @@ import logo from './logo.svg';
 import './App.css';
 import Luokka from './Luokka';
 import Tentti from './Tentti';
-import Kysymys from './Kysymys';
-import Vastausvaihtoehto from './Vastausvaihtoehto';
+//import Kysymys from './Kysymys';
+//import Vastausvaihtoehto from './Vastausvaihtoehto';
 
 const TenttiSovellus = () => {
 
@@ -53,31 +53,31 @@ const TenttiSovellus = () => {
 
   /* tenttikysymysten määrittely */
   let kysymys1 = {
-    nimi: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    nimi: "Onko tässä järkee?",
     vastausvaihtoehdot: [vastausvaihtoehto1, vastausvaihtoehto2, vastausvaihtoehto3]
   }
   let kysymys2 = {
-    nimi: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    nimi: "Entäs tässä?",
     vastausvaihtoehdot: [vastausvaihtoehto5, vastausvaihtoehto4, vastausvaihtoehto6]
   }
   let kysymys3 = {
-    nimi: "cccccccccccccccccccccccccccccccccccccc",
+    nimi: "Onko maailma valmis?",
     vastausvaihtoehdot: [vastausvaihtoehto3, vastausvaihtoehto4, vastausvaihtoehto5]
   }
   let kysymys4 = {
-    nimi: "cccccccccccccccccccccccccccccccccccccc",
+    nimi: "Mitä kuuluu?",
     vastausvaihtoehdot: [vastausvaihtoehto4, vastausvaihtoehto5, vastausvaihtoehto6]
   }
   let kysymys5 = {
-    nimi: "ddddddddddddddddddddddddd",
+    nimi: "Onko valmista jo?",
     vastausvaihtoehdot: [vastausvaihtoehto3, vastausvaihtoehto5, vastausvaihtoehto6]
   }
   let kysymys6 = {
-    nimi: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    nimi: "Mitäs teet seuraavaksi?",
     vastausvaihtoehdot: [vastausvaihtoehto2, vastausvaihtoehto3, vastausvaihtoehto4]
   }
   let kysymys7 = {
-    nimi: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeefffffffffffffff",
+    nimi: "Eikö ole vielä riittävän haastavaa?",
     vastausvaihtoehdot: [vastausvaihtoehto3, vastausvaihtoehto4, vastausvaihtoehto6]
   }
 
@@ -96,57 +96,14 @@ const TenttiSovellus = () => {
 
   return (
 
+    <div className="flex-container">
 
-    <div>
-      <div>{tentti1.nimi}</div>
+      {/* <Header /> */}
+      <div><Tentti tentti={tentti1} /></div>
 
-      <div>
-        {tentti1.kysymykset.map(kysymys => {
+    </div>
 
-          return (
-
-            <div>
-              <div><Kysymys kysymys={kysymys} /></div>
-            </div>
-   
-            
-            {
-            kysymys.vastausvaihtoehdot.map(vastausvaihtoehto => {
-              return (
-                <div>
-                  <div><Vastausvaihtoehto vastausvaihtoehto={vastausvaihtoehto} /></div>
-                </div>
-              );
-
-            }
-            )
-          });
-            
-          }
-
-
-        )
-
-        {koulu.luokat.map(luokka => <div><Luokka luokka={luokka} /></div>)}
-
-      </div>
-
-
-
-
-
-
-
-/*       <div>
-        <div>Koulun nimi:{koulu.nimi}</div>
-        <div>Oppilaita koulussa: {koulu.oppilaidenMäärä}</div>
-        {koulu.luokat.map(luokka => <div><Luokka luokka={luokka} /></div>)}
-
-
-      </div >
-      */
-
-      );
+  );
 }
 
-      export default TenttiSovellus;
+export default TenttiSovellus;

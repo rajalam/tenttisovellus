@@ -3,7 +3,8 @@ import './App.css';
 
 const Vastausvaihtoehto = (props) => {
   return (
-    <div>{props.vastausvaihtoehto.nimi}
+    <div>
+    <div>{props.vastausvaihtoehto.nimi}</div>
       
     </div>
   );
