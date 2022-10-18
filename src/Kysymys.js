@@ -5,11 +5,14 @@ import Vastausvaihtoehto from './Vastausvaihtoehto';
 const Kysymys = (props) => {
   return (
     <>
-      <div>{props.kysymys.nimi}</div>
+      <div><b>{props.kysymys.nimi}</b></div>
       
       <div>
-        {props.kysymys.vastausvaihtoehdot.map(vastausvaihtoehto =>
-          <Vastausvaihtoehto vastausvaihtoehto={vastausvaihtoehto} />)}
+        {props.kysymys.vastausvaihtoehdot.map((vastausvaihtoehto, index) =>
+          <Vastausvaihtoehto dispatch={props.dispatch}
+          vastausvaihtoehtoIndex={index} 
+          kysymysIndex={props.kysymysIndex}
+          vastausvaihtoehto={vastausvaihtoehto} />)}
       </div>
 
     </>

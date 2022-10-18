@@ -2,11 +2,32 @@ import logo from './logo.svg';
 import './App.css';
 import Luokka from './Luokka';
 import Tentti from './Tentti';
+import { useState,useReducer } from "react"
 //import Kysymys from './Kysymys';
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
+function reducer(state, action) {
+  switch (action.type) {
+      
+    case 'VASTAUS_VE_NIMI_MUUTTUI':
+      console.log("Reduceria kutsuttiin", action)
+      let nimi = action.payload.nimi
+      let tenttiKopio = {...state}
+
+      //seur. riviä pitää vielä modata ja myös alikomponenttien index tietoja myös->onko ok?
+      //seur. rivi bugaa koska .vastausvaihtoehtoIndex tulee undefined arvolla sisään funktioon
+      tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot[action.payload.vastausvaihtoehtoIndex].nimi = nimi      
+      
+      return tenttiKopio
+          
+      default:
+      throw new Error("reduceriin tultiin jännällä actionilla");
+  }
+}
+
 const TenttiSovellus = () => {
 
+  
   let oppilas1 = { nimi: "Olli Oppilas" }
 
   let oppilas2 = { nimi: "Mikko Mallikas" }
@@ -94,13 +115,18 @@ const TenttiSovellus = () => {
   //tentit
   let tentit = [tentti1, tentti2]
 
+  //reducer alustus
+  const [tentti, dispatch] = useReducer(reducer, tentti1);
+
+
   return (
 
     <div className="flex-container">
 
       {/* <Header /> */}
-      <div><Tentti tentti={tentti1} /></div>
+      <div><Tentti tentti={tentti} dispatch={dispatch} /></div>
 
+    
     </div>
 
   );

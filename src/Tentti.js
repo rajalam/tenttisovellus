@@ -7,10 +7,13 @@ const Tentti = (props) => {
     <>
       <div className='Tentti'>{props.tentti.nimi}</div>
 
-      <div>{props.tentti.kysymykset.map(kysymys =>
-        <Kysymys kysymys={kysymys} />)}
+      <div>{props.tentti.kysymykset.map((kysymys, index) =>
+        <Kysymys dispatch={props.dispatch} kysymysIndex={index} kysymys={kysymys} />)}
       </div>
+      
     </>
+
+    
   );
 }
 
