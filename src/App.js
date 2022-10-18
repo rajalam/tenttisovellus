@@ -11,15 +11,36 @@ function reducer(state, action) {
       
     case 'VASTAUS_VE_NIMI_MUUTTUI':
       console.log("Reduceria kutsuttiin", action)
+      
       let nimi = action.payload.nimi
       let tenttiKopio = {...state}
 
-      //seur. riviä pitää vielä modata ja myös alikomponenttien index tietoja myös->onko ok?
-      //seur. rivi bugaa koska .vastausvaihtoehtoIndex tulee undefined arvolla sisään funktioon
+      //haetaan tenttikopion ja muiden komponenttien läpi vastausve nimi ja 
+      //tallennetaan se tenttikopioon
       tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot[action.payload.vastausvaihtoehtoIndex].nimi = nimi      
       
       return tenttiKopio
-          
+      
+    case 'VASTAUS_VE_POISTETTIIN':
+      console.log("Reduceria kutsuttiin", action)
+
+      //kopioidaan ap tentti
+      let tenttiKopio2 = {...state}
+
+      //haetaan poistettavaksi merkitty vastausvaihtoehto object ja poistetaan se
+      tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
+      
+      //näköjään yhtä click kohden reducer funktiota kutsutaan kaksi kertaa, joten
+      //välillä yksi poista painallus poistaa kaksi vastausvaihtoehtoa, välillä yhden
+      //vielä tarkemmin valittu ja sitä seuraava vastausvaihtoehto poistuu, kiitos sen
+      //että 2x tulee tämä reducer funktio kutsutuksi per onClick event,
+      //jos valittu listan viimeinen vastausvaihtoehto, vain se poistuu
+      console.log("Reduceria kutsuttiin", tenttiKopio2)
+
+      //tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice([action.payload.vastausvaihtoehtoIndex], 1) 
+
+      return tenttiKopio2
+
       default:
       throw new Error("reduceriin tultiin jännällä actionilla");
   }
