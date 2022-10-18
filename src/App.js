@@ -35,8 +35,10 @@ function reducer(state, action) {
       //vielä tarkemmin valittu ja sitä seuraava vastausvaihtoehto poistuu, kiitos sen
       //että 2x tulee tämä reducer funktio kutsutuksi per onClick event,
       //jos valittu listan viimeinen vastausvaihtoehto, vain se poistuu
+      //RATKAISUEHDOTUS: lisää joku tilatieto, esim. boolean jolla if-ehdollal voi tarkistaa
+      //että vain ekalla kutsukierroksella suoritetaan tuo poisto action, tokalla enää ei
       console.log("Reduceria kutsuttiin", tenttiKopio2)
-
+          
       //tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice([action.payload.vastausvaihtoehtoIndex], 1) 
 
       return tenttiKopio2
