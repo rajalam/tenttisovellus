@@ -24,8 +24,10 @@ function reducer(state, action) {
     case 'VASTAUS_VE_POISTETTIIN':
       console.log("Reduceria kutsuttiin", action)
 
-      //kopioidaan ap tentti
-      let tenttiKopio2 = {...state}
+      //kopioidaan ap tentti, toimiiko muokkaus täs cases 
+      //{...state} syntaksilla oikein?, jos ei kopio mene läpi kaikkien tasojen?
+      //let tenttiKopio2 = {...state}
+      let tenttiKopio2 = JSON.parse(JSON.stringify(state))
 
       //haetaan poistettavaksi merkitty vastausvaihtoehto object ja poistetaan se
       tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
@@ -37,7 +39,20 @@ function reducer(state, action) {
       //jos valittu listan viimeinen vastausvaihtoehto, vain se poistuu
       //RATKAISUEHDOTUS: lisää joku tilatieto, esim. boolean jolla if-ehdollal voi tarkistaa
       //että vain ekalla kutsukierroksella suoritetaan tuo poisto action, tokalla enää ei
-      console.log("Reduceria kutsuttiin", tenttiKopio2)
+      //toinen ve: käyttämällä kopioivaa, eikä mutatoivaa funktiota listan säädölle,
+      //homman pitäisi myös ratketa eli lisäystä ei voi tehdä pushilla, vaan esim. slicella
+      //kopio ensin ja sitten push?
+      //3. ve: varmin keino: JSON.parse.(JSON.stringify(state)) täyskopioimalla ensin, vt. github juuso esim.?
+      //ja tän jälkeen tehdä muunto-operaatio tälle luodulle kopiolle
+      //4. ve: kopioida ensin muutettava lista esim. kysymykset(esim. slicella) ja muokata
+      //tätä kopiota sen jälkeen, niin pitäisi ehkä vika poistua?
+      //5. ve Anna-sofia idea: Vielä siihen edelliseen ongelmaan liittyen, 
+      //tarkemmin tarkasteltuna taitaa riittää, että 
+      //rivin "stateCopy.questions = stateCopy.questions.slice();" 
+      //muuttaa riviksi "stateCopy.questions = state.questions.slice();" 
+      //eli turhaahan siinä on lähteä koodia suuremmin muuttamaan kopioimalla
+      // ensin vastaukset jne.
+      //console.log("Reduceria kutsuttiin", tenttiKopio2)
           
       //tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice([action.payload.vastausvaihtoehtoIndex], 1) 
 
