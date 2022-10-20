@@ -7,13 +7,16 @@ import { useState,useReducer } from "react"
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
 function reducer(state, action) {
+  
+  let tenttiKopio = {}
+
   switch (action.type) {
       
     case 'VASTAUS_VE_NIMI_MUUTTUI':
       console.log("Reduceria kutsuttiin", action)
       
       let nimi = action.payload.nimi
-      let tenttiKopio = {...state}
+      tenttiKopio = {...state}
 
       //haetaan tenttikopion ja muiden komponenttien läpi vastausve nimi ja 
       //tallennetaan se tenttikopioon
@@ -27,16 +30,16 @@ function reducer(state, action) {
       //kopioidaan ap tentti, toimiiko muokkaus täs cases 
       //{...state} syntaksilla oikein?, jos ei kopio mene läpi kaikkien tasojen?
       //let tenttiKopio2 = {...state}
-      let tenttiKopio2 = JSON.parse(JSON.stringify(state))
+      tenttiKopio = JSON.parse(JSON.stringify(state))
 
       //haetaan poistettavaksi merkitty vastausvaihtoehto object ja poistetaan se
-      tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
+      tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
       
       //näköjään yhtä click kohden reducer funktiota kutsutaan kaksi kertaa, joten
       //välillä yksi poista painallus poistaa kaksi vastausvaihtoehtoa, välillä yhden
       //vielä tarkemmin valittu ja sitä seuraava vastausvaihtoehto poistuu, kiitos sen
       //että 2x tulee tämä reducer funktio kutsutuksi per onClick event,
-      //jos valittu listan viimeinen vastausvaihtoehto, vain se poistuu
+      //jos valittu listan   viimeinen vastausvaihtoehto, vain se poistuu
       //RATKAISUEHDOTUS: lisää joku tilatieto, esim. boolean jolla if-ehdollal voi tarkistaa
       //että vain ekalla kutsukierroksella suoritetaan tuo poisto action, tokalla enää ei
       //toinen ve: käyttämällä kopioivaa, eikä mutatoivaa funktiota listan säädölle,
@@ -56,23 +59,23 @@ function reducer(state, action) {
           
       //tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice([action.payload.vastausvaihtoehtoIndex], 1) 
 
-      return tenttiKopio2
+      return tenttiKopio
 
       case 'VASTAUS_VE_LISATTIIN':
         console.log("Reduceria kutsuttiin", action)
 
         //täysi kopio tentistä
-        let tenttiKopio3 = JSON.parse(JSON.stringify(state))
+        tenttiKopio = JSON.parse(JSON.stringify(state))
 
        //haetaan kysymys, johon liittyvä tyhjä vastausvaihtoehto on tarkoitus lisätä
        //ja lisätään se ko. vastausvaihtoehtolistan loppuun
-        tenttiKopio3.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.push(
+        tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.push(
           {
             nimi: "", onkoOikein: false
           }
         )
         
-        return tenttiKopio3
+        return tenttiKopio
 
       default:
       throw new Error("reduceriin tultiin jännällä actionilla");
