@@ -1,8 +1,8 @@
 import logo from './logo.svg';
 import './App.css';
-import Luokka from './Luokka';
+//import Luokka from './Luokka';
 import Tentti from './Tentti';
-import { useState,useReducer } from "react"
+import { useState, useReducer, useEffect } from "react"
 //import Kysymys from './Kysymys';
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
@@ -21,6 +21,9 @@ function reducer(state, action) {
       //haetaan tenttikopion ja muiden komponenttien läpi vastausve nimi ja 
       //tallennetaan se tenttikopioon
       tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot[action.payload.vastausvaihtoehtoIndex].nimi = nimi      
+  
+      //data tallennus tarvitaan
+      tenttiKopio.tallennetaanko = true
       
       return tenttiKopio
       
@@ -35,6 +38,9 @@ function reducer(state, action) {
       //haetaan poistettavaksi merkitty vastausvaihtoehto object ja poistetaan se
       tenttiKopio.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
       
+      //data tallennus tarvitaan
+      tenttiKopio.tallennetaanko = true
+
       //näköjään yhtä click kohden reducer funktiota kutsutaan kaksi kertaa, joten
       //välillä yksi poista painallus poistaa kaksi vastausvaihtoehtoa, välillä yhden
       //vielä tarkemmin valittu ja sitä seuraava vastausvaihtoehto poistuu, kiitos sen
@@ -74,8 +80,19 @@ function reducer(state, action) {
             nimi: "", onkoOikein: false
           }
         )
-        
+          
+        //data tallennus tarvitaan
+        tenttiKopio.tallennetaanko = true
+
         return tenttiKopio
+
+      case "ALUSTA_DATA":
+        console.log("Reduceria kutsuttiin", action)
+        return { ...action.payload, tietoAlustettu: true }
+
+      case "PAIVITA_TALLENNUSTILA":
+        console.log("Reduceria kutsuttiin", action)
+        return { ...state, tallennetaanko: action.payload }
 
       default:
       throw new Error("reduceriin tultiin jännällä actionilla");
@@ -85,6 +102,7 @@ function reducer(state, action) {
 const TenttiSovellus = () => {
 
   
+  /*
   let oppilas1 = { nimi: "Olli Oppilas" }
 
   let oppilas2 = { nimi: "Mikko Mallikas" }
@@ -108,6 +126,7 @@ const TenttiSovellus = () => {
     nimi: "Kangasalan ala-aste",
     luokat: [luokka1, luokka2]
   }
+ */
 
   /* vastausvaihtoehtojen määrittely */
   let vastausvaihtoehto1 = {
@@ -162,7 +181,9 @@ const TenttiSovellus = () => {
   //tenttien määrittely
   let tentti1 = {
     nimi: "Javascript perusteet",
-    kysymykset: [kysymys1, kysymys2, kysymys3, kysymys4]
+    kysymykset: [kysymys1, kysymys2, kysymys3, kysymys4],
+    tallennetaanko: false,
+    tietoAlustettu: false
   }
   let tentti2 = {
     nimi: "Haskell perusteet",
@@ -175,13 +196,49 @@ const TenttiSovellus = () => {
   //reducer alustus
   const [tentti, dispatch] = useReducer(reducer, tentti1);
 
+  //effectien alustus, suoritetaan renderöinnin eli return{...} sisällön rungon 
+  //suoritus jälkeen
+  useEffect( ()  => {
+
+    //haetaan tenttidata
+    let tenttidata = localStorage.getItem("tenttidata");
+
+    if( tenttidata != null ) { //local storage dataa löytyi
+      
+      console.log("Data luettu local storagesta")
+
+      dispatch({ type: "ALUSTA_DATA", payload: (JSON.parse(tenttidata) )})
+    } else { //local storage dataa ei löytynyt, tiedot haetaan vakiosta
+      
+      console.log("Tiedot haettu vakiosta")
+      localStorage.setItem("tenttidata", JSON.stringify( tentti1 ) )
+      dispatch({ type: "ALUSTA_DATA", payload: tentti1 } )
+    }
+
+  }, []);
+
+  useEffect( () => {
+
+    if( tentti.tallennetaanko ) { //tallennus tila menossa, päivitetään tenttidata
+
+      console.log("Tenttidata pitää tallentaa")
+      console.log("Tentti: ", tentti)
+
+      localStorage.setItem("tenttidata", JSON.stringify( tentti ))
+      dispatch({ type: "PAIVITA_TALLENNUSTILA", payload: false })
+
+    }
+
+  }, [tentti.tallennetaanko]);
 
   return (
 
     <div className="flex-container">
 
       {/* <Header /> */}
-      <div><Tentti tentti={tentti} dispatch={dispatch} /></div>
+      <div>
+        {tentti.tietoAlustettu && <Tentti tentti={tentti} dispatch={dispatch} />}
+      </div>
 
     
     </div>
