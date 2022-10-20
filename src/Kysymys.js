@@ -14,7 +14,20 @@ const Kysymys = (props) => {
           kysymysIndex={props.kysymysIndex}
           vastausvaihtoehto={vastausvaihtoehto} />)}
       </div>
-
+      <div>
+      <input type="button" onClick={(event) => {
+          props.dispatch({
+            type: "VASTAUS_VE_LISATTIIN",
+            payload:
+            {
+              nimi: event.target.value,
+              vastausvaihtoehtoIndex: props.vastausvaihtoehtoIndex,
+              kysymysIndex: props.kysymysIndex
+            }
+          })
+        }}
+          value="+" />
+      </div>   
     </>
   );
 }

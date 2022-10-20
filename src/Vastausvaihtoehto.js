@@ -31,7 +31,7 @@ const Vastausvaihtoehto = (props) => {
             }
           })
         }}
-          value="Poista" />
+          value='-' />
       </div>
     </div>
   );

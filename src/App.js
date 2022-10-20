@@ -58,6 +58,22 @@ function reducer(state, action) {
 
       return tenttiKopio2
 
+      case 'VASTAUS_VE_LISATTIIN':
+        console.log("Reduceria kutsuttiin", action)
+
+        //täysi kopio tentistä
+        let tenttiKopio3 = JSON.parse(JSON.stringify(state))
+
+       //haetaan kysymys, johon liittyvä tyhjä vastausvaihtoehto on tarkoitus lisätä
+       //ja lisätään se ko. vastausvaihtoehtolistan loppuun
+        tenttiKopio3.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.push(
+          {
+            nimi: "", onkoOikein: false
+          }
+        )
+        
+        return tenttiKopio3
+
       default:
       throw new Error("reduceriin tultiin jännällä actionilla");
   }
