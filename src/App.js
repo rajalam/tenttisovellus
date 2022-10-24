@@ -24,6 +24,13 @@ function reducer(state, action) {
   
       //data tallennus tarvitaan
       tenttiKopio.tallennetaanko = true
+
+      //data muutettu
+      tenttiKopio.dataMuutettu = true
+
+      //muistuta käyttäjää nollataan, koska data muuttunut
+       tenttiKopio.muistutaKayttajaa = false
+
       
       return tenttiKopio
       
@@ -40,6 +47,13 @@ function reducer(state, action) {
       
       //data tallennus tarvitaan
       tenttiKopio.tallennetaanko = true
+
+      //data muutettu
+      tenttiKopio.dataMuutettu = true
+
+      //muistuta käyttäjää nollataan, koska data muuttunut
+      tenttiKopio.muistutaKayttajaa = false
+
 
       //näköjään yhtä click kohden reducer funktiota kutsutaan kaksi kertaa, joten
       //välillä yksi poista painallus poistaa kaksi vastausvaihtoehtoa, välillä yhden
@@ -84,8 +98,19 @@ function reducer(state, action) {
         //data tallennus tarvitaan
         tenttiKopio.tallennetaanko = true
 
+        //data muutettu
+        tenttiKopio.dataMuutettu = true
+
+        //muistuta käyttäjää nollataan, koska data muuttunut
+        tenttiKopio.muistutaKayttajaa = false
+
+
         return tenttiKopio
 
+      case "MUISTUTA_KAYTTAJAA":
+        console.log("Reduceria kutsuttiin", action)
+        return { ...state, muistutaKayttajaa: action.payload }
+      
       case "ALUSTA_DATA":
         console.log("Reduceria kutsuttiin", action)
         return { ...action.payload, tietoAlustettu: true }
@@ -183,8 +208,11 @@ const TenttiSovellus = () => {
     nimi: "Javascript perusteet",
     kysymykset: [kysymys1, kysymys2, kysymys3, kysymys4],
     tallennetaanko: false,
-    tietoAlustettu: false
+    tietoAlustettu: false,
+    dataMuutettu: false,
+    muistutaKayttajaa: false
   }
+
   let tentti2 = {
     nimi: "Haskell perusteet",
     kysymykset: [kysymys4, kysymys5, kysymys6]
@@ -195,6 +223,9 @@ const TenttiSovellus = () => {
 
   //reducer alustus
   const [tentti, dispatch] = useReducer(reducer, tentti1);
+
+  //muistutusTimer alustus
+  const [muistutusTimer, setMuistutusTimer] = useState(-1)
 
   //effectien alustus, suoritetaan renderöinnin eli return{...} sisällön rungon 
   //suoritus jälkeen
@@ -224,6 +255,27 @@ const TenttiSovellus = () => {
       console.log("Tenttidata pitää tallentaa")
       console.log("Tentti: ", tentti)
 
+      if( muistutusTimer > -1 ) { //jos timer käynnissä
+        clearTimeout( muistutusTimer )
+      }
+
+      setMuistutusTimer( setTimeout(() => {
+        
+        //timer pitäisi myös nollata jossain kohtaa, että jokainen käyttäjän muutos
+        //tuottama timer nollataan ettei ne jää taustalle pyörimään
+        //aina uutta timeria ja MUISTUTA_KAYTTAJAA tulee kutsutuksi per jokainen muutos
+        //clearTimerilla, tällä toteutuksella timeout-funktio laukeaa vaikka käyttäjä
+        //muokkaisi jotain esim. 10 sekunnin välein niin silti jokaista syötettä/muutosta kohti
+        //timeout laukee eli pitäisi miettiä tarkemmin, missä timeout funktio käynnistetään ja
+        //missä myös jo käynnistetty timer kannattaa nollata
+        tentti.muistutaKayttajaa = true
+        console.log("setTimeout laukee")
+        dispatch( { type: "MUISTUTA_KAYTTAJAA", payload: true })
+      }, 5000
+      ) )
+
+      tentti.dataMuutettu = false
+
       localStorage.setItem("tenttidata", JSON.stringify( tentti ))
       dispatch({ type: "PAIVITA_TALLENNUSTILA", payload: false })
 
@@ -240,6 +292,9 @@ const TenttiSovellus = () => {
         {tentti.tietoAlustettu && <Tentti tentti={tentti} dispatch={dispatch} />}
       </div>
 
+      <div>
+        {tentti.muistutaKayttajaa && <h1>HERÄÄ PAHVI</h1>}
+      </div>
     
     </div>
 
