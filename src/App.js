@@ -3,27 +3,28 @@ import './App.css';
 //import Luokka from './Luokka';
 import Tentti from './Tentti';
 import { useState, useReducer, useEffect } from "react"
+import axios from 'axios' // npm install axios , jos ei ole jo ladattu
 //import Kysymys from './Kysymys';
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
 function reducer(state, action) {
-  
+
   //tehdään täysi kopio appDatasta
   let appDataKopio = JSON.parse(JSON.stringify(state))
 
   switch (action.type) {
-      
+
     case 'VASTAUS_VE_NIMI_MUUTTUI':
       console.log("Reduceria kutsuttiin", action)
-      
+
       let nimi = action.payload.nimi
       //appDataKopio = {...state}
 
       //haetaan appDatakopion ja muiden komponenttien läpi vastausve nimi ja 
       //tallennetaan se appDataKopioon
       //miten valittu tentti ja sen indeksointi?
-      appDataKopio.tentit[action.payload.tenttiIndex].kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot[action.payload.vastausvaihtoehtoIndex].nimi = nimi      
-  
+      appDataKopio.tentit[action.payload.tenttiIndex].kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot[action.payload.vastausvaihtoehtoIndex].nimi = nimi
+
       //data tallennus tarvitaan
       appDataKopio.tallennetaanko = true
 
@@ -32,13 +33,13 @@ function reducer(state, action) {
 
       //muistuta käyttäjää nollataan, koska data muuttunut
       appDataKopio.muistutaKayttajaa = false
-      
+
       return appDataKopio
-      
+
     case 'VASTAUS_VE_POISTETTIIN':
       console.log("Reduceria kutsuttiin", action)
 
-      console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
+      //console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
 
       //kopioidaan ap tentti, toimiiko muokkaus täs cases 
       //{...state} syntaksilla oikein?, jos ei kopio mene läpi kaikkien tasojen?
@@ -48,7 +49,7 @@ function reducer(state, action) {
       //haetaan poistettavaksi merkitty vastausvaihtoehto object ja poistetaan se
       //miten valittu tentti ja sen indeksointi?
       appDataKopio.tentit[action.payload.tenttiIndex].kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice(action.payload.vastausvaihtoehtoIndex, 1);
-      
+
       //data tallennus tarvitaan
       appDataKopio.tallennetaanko = true
 
@@ -80,60 +81,60 @@ function reducer(state, action) {
       //eli turhaahan siinä on lähteä koodia suuremmin muuttamaan kopioimalla
       // ensin vastaukset jne.
       //console.log("Reduceria kutsuttiin", tenttiKopio2)
-          
+
       //tenttiKopio2.kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.splice([action.payload.vastausvaihtoehtoIndex], 1) 
 
       return appDataKopio
 
-      case 'VASTAUS_VE_LISATTIIN':
-        console.log("Reduceria kutsuttiin", action)
+    case 'VASTAUS_VE_LISATTIIN':
+      console.log("Reduceria kutsuttiin", action)
 
-        //console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
-        
-        //täysi kopio tentistä
-        //tenttiKopio = JSON.parse(JSON.stringify(state))
+      //console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
 
-        //haetaan kysymys, johon liittyvä tyhjä vastausvaihtoehto on tarkoitus lisätä
-        //ja lisätään se ko. vastausvaihtoehtolistan loppuun
-        //miten valitaan oikea tentti ja sen indeksointi?
-        appDataKopio.tentit[action.payload.tenttiIndex].kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.push(
-          {
-            nimi: "", onkoOikein: false
-          }
-        )
-          
-        //data tallennus tarvitaan
-        appDataKopio.tallennetaanko = true
+      //täysi kopio tentistä
+      //tenttiKopio = JSON.parse(JSON.stringify(state))
 
-        //data muutettu
-        appDataKopio.dataMuutettu = true
+      //haetaan kysymys, johon liittyvä tyhjä vastausvaihtoehto on tarkoitus lisätä
+      //ja lisätään se ko. vastausvaihtoehtolistan loppuun
+      //miten valitaan oikea tentti ja sen indeksointi?
+      appDataKopio.tentit[action.payload.tenttiIndex].kysymykset[action.payload.kysymysIndex].vastausvaihtoehdot.push(
+        {
+          nimi: "", onkoOikein: false
+        }
+      )
 
-        //muistuta käyttäjää nollataan, koska data muuttunut
-        appDataKopio.muistutaKayttajaa = false
+      //data tallennus tarvitaan
+      appDataKopio.tallennetaanko = true
+
+      //data muutettu
+      appDataKopio.dataMuutettu = true
+
+      //muistuta käyttäjää nollataan, koska data muuttunut
+      appDataKopio.muistutaKayttajaa = false
 
 
-        return appDataKopio
+      return appDataKopio
 
-      case "MUISTUTA_KAYTTAJAA":
-        console.log("Reduceria kutsuttiin", action)
-        return { ...state, muistutaKayttajaa: action.payload }
-      
-      case "ALUSTA_DATA":
-        console.log("Reduceria kutsuttiin", action)
-        return { ...action.payload, tietoAlustettu: true }
+    case "MUISTUTA_KAYTTAJAA":
+      console.log("Reduceria kutsuttiin", action)
+      return { ...state, muistutaKayttajaa: action.payload }
 
-      case "PAIVITA_TALLENNUSTILA":
-        console.log("Reduceria kutsuttiin", action)
-        return { ...state, tallennetaanko: action.payload }
+    case "ALUSTA_DATA":
+      console.log("Reduceria kutsuttiin", action)
+      return { ...action.payload, tietoAlustettu: true }
 
-      default:
+    case "PAIVITA_TALLENNUSTILA":
+      console.log("Reduceria kutsuttiin", action)
+      return { ...state, tallennetaanko: action.payload }
+
+    default:
       throw new Error("reduceriin tultiin jännällä actionilla");
   }
 }
 
 const TenttiSovellus = () => {
 
-  
+
   /*
   let oppilas1 = { nimi: "Olli Oppilas" }
 
@@ -238,38 +239,67 @@ const TenttiSovellus = () => {
 
   //effectien alustus, suoritetaan renderöinnin eli return{...} sisällön rungon 
   //suoritus jälkeen
-  useEffect( ()  => {
+  useEffect(() => {
 
-    //haetaan appdata
-    let appdata = localStorage.getItem("appdata");
+    const haeData = async () => {
 
-    if( appdata != null ) { //local storage dataa löytyi
-      
-      console.log("Data luettu local storagesta")
-
-      dispatch({ type: "ALUSTA_DATA", payload: (JSON.parse(appdata) )})
-    } else { //local storage dataa ei löytynyt, tiedot haetaan vakiosta
-      
-      console.log("Tiedot haettu vakiosta")
-      localStorage.setItem("appdata", JSON.stringify( appisData ) )
-      dispatch({ type: "ALUSTA_DATA", payload: appisData } )
+      try {
+        const result = await axios('http://localhost:8080');
+        console.log("get result:", result)
+        //dispatch({ type: "ALUSTA_DATA", payload: result.data })
+        dispatch({ type: "ALUSTA_DATA", payload: result.data.data })
+      } catch (error) {
+        console.log("virhetilanne", error)
+      }
     }
-
+    haeData()
   }, []);
 
-  useEffect( () => {
+  /* //haetaan appdata
+  let appdata = localStorage.getItem("appdata");
 
-    if(  appData.tallennetaanko ) { //tallennus tila menossa, päivitetään appdata
+  if( appdata != null ) { //local storage dataa löytyi
+    
+    console.log("Data luettu local storagesta")
 
-      console.log("Appdata pitää tallentaa")
+    dispatch({ type: "ALUSTA_DATA", payload: (JSON.parse(appdata) )})
+  } else { //local storage dataa ei löytynyt, tiedot haetaan vakiosta
+    
+    console.log("Tiedot haettu vakiosta")
+    localStorage.setItem("appdata", JSON.stringify( appisData ) )
+    dispatch({ type: "ALUSTA_DATA", payload: appisData } )
+  }
+*/
+  //}, []);
+
+  useEffect(() => {
+
+    const tallennaData = async () => {
+
+      try {
+
+        const result = await axios.post('http://localhost:8080', {
+          data: appData
+        })
+        dispatch({ type: "PAIVITA_TALLENNUSTILA", payload: false })
+      } catch (error) {
+        console.log("virhetilanne", error)
+      }
+    }
+
+    if (appData.tallennetaanko) { //tallennus tila menossa, päivitetään appdata
+
+      tallennaData() //tallennetaan
+
+      /* console.log("Appdata pitää tallentaa")
       console.log("Appdata: ", appData)
 
-      if( muistutusTimer > -1 ) { //jos timer käynnissä
-        clearTimeout( muistutusTimer )
+      if (muistutusTimer > -1) { //jos timer käynnissä
+        clearTimeout(muistutusTimer)
       }
 
-      setMuistutusTimer( setTimeout(() => {
-        
+      setMuistutusTimer(setTimeout(() => {
+
         //timer pitäisi myös nollata jossain kohtaa, että jokainen käyttäjän muutos
         //tuottama timer nollataan ettei ne jää taustalle pyörimään
         //aina uutta timeria ja MUISTUTA_KAYTTAJAA tulee kutsutuksi per jokainen muutos
@@ -277,16 +307,16 @@ const TenttiSovellus = () => {
         //muokkaisi jotain esim. 10 sekunnin välein niin silti jokaista syötettä/muutosta kohti
         //timeout laukee eli pitäisi miettiä tarkemmin, missä timeout funktio käynnistetään ja
         //missä myös jo käynnistetty timer kannattaa nollata
-        
+
         console.log("setTimeout laukee")
-        dispatch( { type: "MUISTUTA_KAYTTAJAA", payload: true })
+        dispatch({ type: "MUISTUTA_KAYTTAJAA", payload: true })
       }, 5000
-      ) )
+      ))
 
       appData.dataMuutettu = false
 
-      localStorage.setItem("appdata", JSON.stringify( appData ))
-      dispatch({ type: "PAIVITA_TALLENNUSTILA", payload: false })
+      localStorage.setItem("appdata", JSON.stringify(appData))
+      dispatch({ type: "PAIVITA_TALLENNUSTILA", payload: false }) */
 
     }
 
@@ -298,15 +328,15 @@ const TenttiSovellus = () => {
 
       {/* <Header /> */}
       <div>
-        {appData.tietoAlustettu && appData.tentit.map((tentti, index) => 
-        <Tentti tentti={tentti} tenttiIndex={index} dispatch={dispatch} />)}
+        {appData.tietoAlustettu && appData.tentit.map((tentti, index) =>
+          <Tentti tentti={tentti} tenttiIndex={index} dispatch={dispatch} />)}
 
       </div>
 
       {/* <div>
         {tentti.muistutaKayttajaa && <h1>HERÄÄ PAHVI</h1>}
       </div> */}
-    
+
     </div>
 
   );
