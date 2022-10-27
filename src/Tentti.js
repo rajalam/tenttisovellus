@@ -10,9 +10,10 @@ const Tentti = (props) => {
       {/* kun kaikki tentit läpikäydään, tulee seur. mapin suorituksen(eli kaikkien kysymysten)
       edellytyksenä tulee olla se, että ollaan piirtämässä aktiivista tenttiä, esim.
       jollain boolean arvolla tämä voidaan hoitaa jotta map suor. vain kun tentti.active
-      valittuna */}
+      valittuna tai tenttiIndex = tentti.active.tenttiIndex tms. */}
       <div>{props.tentti.kysymykset.map((kysymys, index) =>
-        <Kysymys dispatch={props.dispatch} kysymysIndex={index} kysymys={kysymys} />)}
+        <Kysymys dispatch={props.dispatch} kysymysIndex={index} kysymys={kysymys} 
+        tenttiIndex={props.tenttiIndex} />)}
       </div>
 
     </>

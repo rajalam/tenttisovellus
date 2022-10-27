@@ -13,7 +13,9 @@ const Vastausvaihtoehto = (props) => {
           {
             nimi: event.target.value,
             vastausvaihtoehtoIndex: props.vastausvaihtoehtoIndex,
-            kysymysIndex: props.kysymysIndex
+            kysymysIndex: props.kysymysIndex,
+            tenttiIndex: props.tenttiIndex
+                        
           }
         })
       }}
@@ -27,7 +29,8 @@ const Vastausvaihtoehto = (props) => {
             {
               nimi: event.target.value,
               vastausvaihtoehtoIndex: props.vastausvaihtoehtoIndex,
-              kysymysIndex: props.kysymysIndex
+              kysymysIndex: props.kysymysIndex,
+              tenttiIndex: props.tenttiIndex
             }
           })
         }}

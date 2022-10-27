@@ -12,7 +12,8 @@ const Kysymys = (props) => {
           <Vastausvaihtoehto dispatch={props.dispatch}
           vastausvaihtoehtoIndex={index} 
           kysymysIndex={props.kysymysIndex}
-          vastausvaihtoehto={vastausvaihtoehto} />)}
+          vastausvaihtoehto={vastausvaihtoehto}
+          tenttiIndex={props.tenttiIndex} />)}
       </div>
       <div>
       <input type="button" onClick={(event) => {
@@ -22,7 +23,9 @@ const Kysymys = (props) => {
             {
               nimi: event.target.value,
               vastausvaihtoehtoIndex: props.vastausvaihtoehtoIndex,
-              kysymysIndex: props.kysymysIndex
+              kysymysIndex: props.kysymysIndex,
+              tenttiIndex: props.tenttiIndex
+              
             }
           })
         }}
