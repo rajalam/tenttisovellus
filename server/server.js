@@ -16,6 +16,7 @@ app.use(function (req, res, next) {
 
 const read = async () => {
 
+  //lisää try-catch lohkot await haun ympärille
   const data = await fs.readFile('./appdata.json', {encoding: 'utf8', flag: 'r'}); //Voi kestää useita sekunteja
   console.log("Datan sisältö readFile tuloksena", data)
   return data;
@@ -23,6 +24,7 @@ const read = async () => {
 
 const write = async (req) => {
 
+  //lisää try-catch lohkot await haun ympärille
   const data = await fs.writeFile('appdata.json', JSON.stringify(req.body)); //Voi kestää useita sekunteja
   return data;
 }
