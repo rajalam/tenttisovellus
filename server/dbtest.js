@@ -37,6 +37,7 @@ const lisaaKoulu = async() => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 lisaaKoulu()
@@ -51,6 +52,7 @@ const lisaaTentti = async(tenttiNimi) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 lisaaTentti("Java perusteet")
@@ -67,6 +69,7 @@ const poistaTentti = async(tenttiId) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 poistaTentti(3)
@@ -81,6 +84,7 @@ const muutaTenttiNimi = async(tenttiId, tenttiNimi) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 muutaTenttiNimi(6, "Testitentti 3")
@@ -95,6 +99,7 @@ const haeTentit = async() => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 haeTentit()
@@ -109,6 +114,7 @@ const haeTentti = async(tenttiId) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 haeTentti(4)
@@ -123,6 +129,7 @@ const haeTentitNimellaAakkosjarjestys = async(tenttiNimiOsa) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 haeTentitNimellaAakkosjarjestys("per")
@@ -140,6 +147,7 @@ const haeTentitIdPer = async(tenttiId1, tenttiId2, tenttiId3) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    pool.end()
 
 }
 haeTentitIdPer(3, 6, 7)
@@ -155,7 +163,7 @@ const haeTentitEnnenPvm = async(pvm) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
-
+    pool.end()
 }
 haeTentitEnnenPvm('2022-10-12')
 
@@ -170,6 +178,9 @@ const haeVoimassaOlevatTentit = async(onkoVoimassa) => {
     catch (error) {
         console.log("virhetilanne: ", error)
     }
+    
+    pool.end()
+    
 
 }
 haeVoimassaOlevatTentit(true)
