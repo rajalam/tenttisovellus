@@ -202,6 +202,24 @@ app.put('/tentit/:id', async (req, res) => {
     }
 })
 
+//kysymys nimen muokkaus
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+app.put('/kysymykset/:id', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt muokataan kysymys nimeä")
+  console.log ("kysymysID: ",id)
+    try {
+      result = await pool.query("update kysymys set nimi = ($1) where id = ($2)",[req.body.nimi, id])
+      res.send('Kysymys put ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 
 app.listen(port, () => {
