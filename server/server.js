@@ -108,6 +108,28 @@ app.get('/tentit/:tenttiId/kysymykset', async (req, res) => {
     }
 })
 
+//vastausvaihtoehtojen haku tietyn kysymys perusteella
+//TODO 
+app.get('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  
+  console.log ("nyt haetaan vastausvaihtoehdot")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query(
+        "select vastausvaihtoehto.id, vastausvaihtoehto.nimi, vastausvaihtoehto.on_oikea from kysymys, vastausvaihtoehto where kysymys.id = vastausvaihtoehto.kysymys_id and kysymys.id = ($1)", [id])
+      
+      res.setHeader("Content-type", "application/json")      
+      res.send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+
 
 //tentin lisäys
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
