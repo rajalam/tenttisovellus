@@ -149,7 +149,7 @@ app.post('/tentit', async (req, res) => {
     }
 })
 
-//tentin lisäys
+//kysymys lisäys
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {  
   
@@ -161,6 +161,24 @@ app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
     try {
       result = await pool.query("INSERT INTO kysymys (nimi, tentti_id) VALUES ($1, $2) ",[req.body.nimi, id])
       res.send('Kysymykset post ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//vastausvaihtoehto lisäys
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt lisätään vastausvaihtoehto")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query("INSERT INTO vastausvaihtoehto (nimi, on_oikea, kysymys_id) VALUES ($1, false, $2) ",[req.body.nimi, id])
+      res.send('Vastausvaihtoehdot post ok')    
     }
     catch(e){
       res.status(500).send(e)
