@@ -86,6 +86,28 @@ app.get('/tentit', async (req, res) => {
     }
 })
 
+//kysymysten haku tietyn tentin perusteella
+//TODO 
+app.get('/tentit/:tenttiId/kysymykset', async (req, res) => {  
+  
+  const id = Number(req.params.tenttiId)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt haetaan kysymykset")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query(
+        "select kysymys.id, kysymys.nimi from tentti, kysymys where tentti.id = kysymys.tentti_id and tentti.id = ($1)", [id])
+      //res.body = result
+      res.setHeader("Content-type", "application/json")      
+      res.send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 //tentin lisäys
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
@@ -98,7 +120,7 @@ app.post('/tentit', async (req, res) => {
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
       result = await pool.query("INSERT INTO tentti (nimi) VALUES ($1) ",[req.body.nimi])
-      res.send('Tais datan tallennus onnistua')    
+      res.send('Tais tentti tallennus onnistua')    
     }
     catch(e){
       res.status(500).send(e)
