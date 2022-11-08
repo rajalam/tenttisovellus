@@ -127,6 +127,25 @@ app.post('/tentit', async (req, res) => {
     }
 })
 
+//tentin lisäys
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {  
+  
+  const id = Number(req.params.tenttiId)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt lisätään kysymys")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query("INSERT INTO kysymys (nimi, tentti_id) VALUES ($1, $2) ",[req.body.nimi, id])
+      res.send('Kysymykset post ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+
 //tentin poisto
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.delete('/tentit/:id', async (req, res) => {  
