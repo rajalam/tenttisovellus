@@ -164,6 +164,26 @@ app.delete('/tentit/:id', async (req, res) => {
     }
 })
 
+//kysymys poisto
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+//TODO liittyvien tietojen(mm. vastausvaihtoehtojen) poisto samalla toiminnolla?
+app.delete('/kysymykset/:id', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt poistetaan kysymys")
+  console.log ("kysymysID: ",id)
+    try {
+      result = await pool.query("delete from kysymys where id = ($1)",[id])
+      res.send('Kysymys delete ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+
 //tentin nimen muokkaus
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.put('/tentit/:id', async (req, res) => {  
