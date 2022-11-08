@@ -188,6 +188,7 @@ app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
 
 //tentin poisto
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+//TODO pitäisikö poistaa samalla tenttiin liittyvä data myös? ja vaatiiko ne transaktion käyttöä?
 app.delete('/tentit/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
@@ -197,7 +198,7 @@ app.delete('/tentit/:id', async (req, res) => {
   console.log ("tenttiID: ",id)
     try {
       result = await pool.query("delete from tentti where id = ($1)",[id])
-      res.send('Tais datan tallennus onnistua')    
+      res.send('Tentti delete ok')    
     }
     catch(e){
       res.status(500).send(e)
@@ -217,6 +218,25 @@ app.delete('/kysymykset/:id', async (req, res) => {
     try {
       result = await pool.query("delete from kysymys where id = ($1)",[id])
       res.send('Kysymys delete ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//vastausvaihtoehto poisto
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+//TODO liittyvien tietojen poisto samalla toiminnolla?, transaktiot avuksi?
+app.delete('/vastausvaihtoehdot/:id', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt poistetaan vastausvaihtoehto")
+  console.log ("vastausvaihtoehtoID: ",id)
+    try {
+      result = await pool.query("delete from vastausvaihtoehto where id = ($1)",[id])
+      res.send('Vastausvaihtoehto delete ok')    
     }
     catch(e){
       res.status(500).send(e)
@@ -260,6 +280,25 @@ app.put('/kysymykset/:id', async (req, res) => {
     }
 })
 
+
+//vastausvaihtoehdon ominaisuuksien muokkaus
+//TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
+app.put('/vastausvaihtoehdot/:id', async (req, res) => {  
+  
+  const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt muokataan vastausvaihtoehdon ominaisuuksia")
+  console.log ("vastausvaihtoehtoID: ",id)
+    try {
+      result = await pool.query("update vastausvaihtoehto set nimi = ($1), on_oikea = ($2) where id = ($3)",
+      [req.body.nimi, req.body.on_oikea, id])
+      res.send('Vastausvaihtoehto put ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
 
 
 app.listen(port, () => {
