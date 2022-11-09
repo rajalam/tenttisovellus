@@ -130,6 +130,30 @@ app.get('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
 })
 
 
+//tietyn oppilaan vastauksen haku tietyn vastausvaihtoehdon perusteella oppilas näkymässä
+//TODO 
+app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
+  
+  const vastausvaihtoehtoId = Number(req.params.id)  
+  const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
+  
+  console.log ("nyt haetaan oppilaan vastaus")
+  console.log ("kayttajaId: ", kayttajaId)
+  //console.log ("req.body.kayttajaid: ", req.body.kayttajaid)
+    try {
+      result = await pool.query(
+        "select kayttaja_vastaus.valittu from kayttaja_vastaus, kayttaja, vastausvaihtoehto where kayttaja.id = kayttaja_vastaus.kayttaja_id and vastausvaihtoehto.id = kayttaja_vastaus.vastausvaihtoehto_id and vastausvaihtoehto.id = ($1) and kayttaja_id = ($2)", 
+        [vastausvaihtoehtoId, kayttajaId])
+      
+      res.setHeader("Content-type", "application/json")      
+      res.send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 //tentin lisäys
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
