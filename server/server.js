@@ -209,6 +209,25 @@ app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
     }
 })
 
+//oppilaan vastaus lisäys, joka on post-metodin tuloksena aina true, koska oletuksena oppilaan vastauksen puuttuessa
+//kayttaja_vastaus taulusta, on vastauksen arvo false, put-metodilla boolean arvon muutokset
+//TODO
+app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
+  
+  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
+  const kayttajaId = Number(req.params.kayttajaId)  
+  
+  console.log ("nyt lisätään oppilaan vastaus")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) ",[kayttajaId, vastausvaihtoehtoId])
+      res.send('Kayttajat_vastaukset post ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 //tentin poisto
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
