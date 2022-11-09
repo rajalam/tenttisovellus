@@ -343,6 +343,27 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
     }
 })
 
+//vastauksen muokkaus, vastauksen uusi arvo bodyyn json syntaksilla: {"valittu":false} || {"valittu":true}
+//TODO
+app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
+  
+  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
+  const kayttajaId = Number(req.params.kayttajaId)  
+  const valittu = req.body.valittu
+  
+  console.log ("nyt muokataan vastausta")
+  console.log ("vastausvaihtoehtoID: ",vastausvaihtoehtoId)
+  console.log ("valittu: ",valittu)
+    try {
+      result = await pool.query("update kayttaja_vastaus set valittu = ($1) where kayttaja_id = ($2) and vastausvaihtoehto_id = ($3)",
+      [valittu, kayttajaId, vastausvaihtoehtoId])
+      res.send('Kayttajat_vastaukset put ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
