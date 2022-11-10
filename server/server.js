@@ -230,7 +230,7 @@ app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaj
 })
 
 //tietyn käyttäjätunnuksen olemassaolon tarkistushaku tietokannassa, pal. boolean
-//tarkistettava käyttäjätunnus bodyssa muodossa {"kayttajatunnus":"TARKISTETTAVA"}
+//tarkistettava käyttäjätunnus bodyssa muodossa {"kayttajanimi":"TARKISTETTAVA"}
 //tämä piti muuttaa .get->.post malliksi, jotta bodyssa json data tuli mukana
 //TODO 
 app.post('/kayttajat/', async (req, res) => {  
@@ -261,6 +261,41 @@ app.post('/kayttajat/', async (req, res) => {
       res.status(500).send(e)
     }
 })
+
+//käyttäjätunnus+salasana parin olemassaolon tarkistushaku tietokannassa, pal. boolean
+//tarkistettava käyttäjätunnus+salasana bodyssa muodossa 
+//{"kayttajanimi":"TARKISTETTAVA", "salasana":"TARKISTETTAVA"}
+//tämä piti toteuttaa .get->.post malliksi, jotta bodyssa json data tuli mukana
+//TODO tietoturva(esim. salasanan + tietoliikenteen salaus), mikä paluuarvo tarvitaan?
+app.post('/kayttajat/tarkista', async (req, res) => {  
+  
+  //const vastausvaihtoehtoId = Number(req.params.id)  
+  //const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
+  
+  console.log ("nyt vahvistetaan käyttäjätunnus+salasana parin olemassaolo")
+  //console.log ("req.body: ", req.body)  
+  //console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
+    try {
+      result = await pool.query(
+        "select * from kayttaja where kayttajanimi = ($1) and salasana = ($2)", 
+        [req.body.kayttajanimi, req.body.salasana])
+      
+      //console.log ("result: ", result) 
+      //res.setHeader("Content-type", "application/json")      
+      if(result.rowCount == 0) { //käyttäjänimi+salasanaa ei löytynyt tietokannasta
+        res.send(false)
+      }
+      else { //käyttäjänimi löytyi tietokannasta jo
+        res.send(true)
+      }
+      //res.send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
 
 //käyttäjänimen + salasanan lisäys kantaan
 //bodyssä json dataa muodossa {"kayttajanimi":"UUSI_TUNNUS", "salasana":"UUSI_SALASANA"}
