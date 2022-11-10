@@ -155,6 +155,7 @@ app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, 
 })
 
 
+
 //tentin lisäys
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/tentit', async (req, res) => {  
@@ -222,6 +223,58 @@ app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaj
     try {
       result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) ",[kayttajaId, vastausvaihtoehtoId])
       res.send('Kayttajat_vastaukset post ok')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//tietyn käyttäjätunnuksen olemassaolon tarkistushaku tietokannassa, pal. boolean
+//tarkistettava käyttäjätunnus bodyssa muodossa {"kayttajatunnus":"TARKISTETTAVA"}
+//tämä piti muuttaa .get->.post malliksi, jotta bodyssa json data tuli mukana
+//TODO 
+app.post('/kayttajat/', async (req, res) => {  
+  
+  //const vastausvaihtoehtoId = Number(req.params.id)  
+  //const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
+  
+  console.log ("nyt haetaan käyttäjätunnuksen olemassaolo")
+  console.log ("req.body: ", req.body)  
+  console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
+    try {
+      result = await pool.query(
+        "select * from kayttaja where kayttajanimi = ($1)", 
+        [req.body.kayttajanimi])
+      
+      //console.log ("result: ", result) 
+      //res.setHeader("Content-type", "application/json")      
+      if(result.rowCount == 0) { //käyttäjänimeä ei löytynyt tietokannasta
+        res.send(false)
+      }
+      else { //käyttäjänimi löytyi tietokannasta jo
+        res.send(true)
+      }
+      //res.send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//käyttäjänimen + salasanan lisäys kantaan
+//bodyssä json dataa muodossa {"kayttajanimi":"UUSI_TUNNUS", "salasana":"UUSI_SALASANA"}
+//TODO tietoturvaominaisuudet(esim. salasanan salaus kannassa+liikenteessä)
+app.post('/kayttajat/uusi', async (req, res) => {  
+  
+  //const id = Number(req.params.id)  
+  //const luokkaId = Number(req.params.kouluId)  
+  
+  console.log ("nyt lisätään kayttajatunnus+salasana")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query("INSERT INTO kayttaja (kayttajanimi, salasana, on_yllapitaja) VALUES ($1, $2, false) ",[req.body.kayttajanimi, req.body.salasana])
+      res.send('Käyttäjät/uusi post ok')    
     }
     catch(e){
       res.status(500).send(e)
