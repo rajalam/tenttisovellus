@@ -4,7 +4,8 @@ const fs = require('fs').promises;
 const express = require('express')  //Jos ei toimi, niin "npm install express"
 
 const cors = require('cors')
-const { Pool } = require('pg')
+const { Pool } = require('pg');
+const { restart } = require('nodemon');
 const app = express()
 const port = 8080
 
@@ -64,6 +65,11 @@ app.post('/', (req, res) => {
  */
 
 //tenttien haku
+//syöte: -
+//tulos: JSON [id, nimi]
+//HTTP vastauskoodit
+//200 haku OK
+//500 palvelinvirhe
 //TODO mahd. lisäys, jolla haetaan vain tiettyyn käyttäjään liittyvät tentit, koska ei ehkä mielekästä
 //hakea kaikkia kannassa olevia tenttejä roolista riippumatta?
 app.get('/tentit', async (req, res) => {  
@@ -78,7 +84,7 @@ app.get('/tentit', async (req, res) => {
       //res.body = result
       res.setHeader("Content-type", "application/json")
       //res.body = result.body
-      res.send(result.rows)
+      res.status(200).send(result.rows)
       //res.send('Tais tentti GET onnistua')    
     }
     catch(e){
@@ -87,12 +93,22 @@ app.get('/tentit', async (req, res) => {
 })
 
 //kysymysten haku tietyn tentin perusteella
+//syöte: URL tenttiId oltava kokonaisluku
+//tulos: JSON [id, nimi]
+//HTTP vastauskoodit
+//200 haku OK
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO 
 app.get('/tentit/:tenttiId/kysymykset', async (req, res) => {  
   
-  const id = Number(req.params.tenttiId)  
-  //const luokkaId = Number(req.params.kouluId)  
-  
+  const id = Number(req.params.tenttiId)
+  if(!id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }  
+    
   console.log ("nyt haetaan kysymykset")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
@@ -100,19 +116,32 @@ app.get('/tentit/:tenttiId/kysymykset', async (req, res) => {
         "select kysymys.id, kysymys.nimi from tentti, kysymys where tentti.id = kysymys.tentti_id and tentti.id = ($1)", [id])
       //res.body = result
       res.setHeader("Content-type", "application/json")      
-      res.send(result.rows)
+      res.status(200).send(result.rows)
       //res.send('Tais tentti GET onnistua')    
     }
     catch(e){
       res.status(500).send(e)
     }
+    
 })
 
-//vastausvaihtoehtojen haku tietyn kysymys perusteella
+//vastausvaihtoehtojen haku tietyn kysymysid perusteella
+//syöte: URL id oltava kokonaisluku
+//tulos: JSON [id, nimi, on_oikea]
+//HTTP vastauskoodit
+//200 haku OK
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO 
 app.get('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {  
   
   const id = Number(req.params.id)  
+    
+  if(!id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }  
   
   console.log ("nyt haetaan vastausvaihtoehdot")
   //console.log ("tenttiNimi: ",req.body.nimi)
@@ -121,7 +150,7 @@ app.get('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
         "select vastausvaihtoehto.id, vastausvaihtoehto.nimi, vastausvaihtoehto.on_oikea from kysymys, vastausvaihtoehto where kysymys.id = vastausvaihtoehto.kysymys_id and kysymys.id = ($1)", [id])
       
       res.setHeader("Content-type", "application/json")      
-      res.send(result.rows)
+      res.status(200).send(result.rows)
       //res.send('Tais tentti GET onnistua')    
     }
     catch(e){
@@ -131,14 +160,26 @@ app.get('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
 
 
 //tietyn oppilaan vastauksen haku tietyn vastausvaihtoehdon perusteella oppilas näkymässä
+//syöte: URL id, kayttajaId oltava kokonaisluku
+//tulos: JSON [valittu]
+//HTTP vastauskoodit
+//200 haku OK
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO 
 app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
   
   const vastausvaihtoehtoId = Number(req.params.id)  
   const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
   
+  if(!vastausvaihtoehtoId || !kayttajaId) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }  
+  
   console.log ("nyt haetaan oppilaan vastaus")
-  console.log ("kayttajaId: ", kayttajaId)
+  //console.log ("kayttajaId: ", kayttajaId)
   //console.log ("req.body.kayttajaid: ", req.body.kayttajaid)
     try {
       result = await pool.query(
@@ -146,7 +187,46 @@ app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, 
         [vastausvaihtoehtoId, kayttajaId])
       
       res.setHeader("Content-type", "application/json")      
-      res.send(result.rows)
+      res.status(200).send(result.rows)
+      //res.send('Tais tentti GET onnistua')    
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//käyttäjätunnus+salasana parin olemassaolon tarkistushaku tietokannassa
+//syöte: URL kayttajanimi, salasana oltava merkkijonoja
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//200 haku OK
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
+//TODO tietoturva(esim. salasanan + tietoliikenteen salaus), mikä paluuarvo tarvitaan?
+app.get('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {  
+  
+  const kayttajanimi = String(req.params.kayttajanimi)
+  const salasana = String(req.params.salasana) 
+  
+  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }    
+
+  console.log ("nyt vahvistetaan käyttäjätunnus+salasana parin olemassaolo")
+  //console.log ("req.body: ", req.body)  
+  //console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
+    try {
+      result = await pool.query(
+        "select id, on_yllapitaja from kayttaja where kayttajanimi = ($1) and salasana = ($2)", 
+        [kayttajanimi, salasana])
+      
+      //console.log ("result: ", result) 
+      res.setHeader("Content-type", "application/json")      
+      res.status(200).send(result.rows)
+      
+      //res.send(result.rows)
       //res.send('Tais tentti GET onnistua')    
     }
     catch(e){
@@ -155,19 +235,37 @@ app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, 
 })
 
 
-
 //tentin lisäys
+//syöte: JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/tentit', async (req, res) => {  
   
-  //const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
-  
+  const nimi = String(req.body.nimi)  
+
+  if(!nimi) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }    
+    
   console.log ("nyt lisätään tenttiä")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
-      result = await pool.query("INSERT INTO tentti (nimi) VALUES ($1) ",[req.body.nimi])
-      res.send('Tais tentti tallennus onnistua')    
+      result = await pool.query("INSERT INTO tentti (nimi) VALUES ($1) returning id",[nimi])
+      
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+      
     }
     catch(e){
       res.status(500).send(e)
@@ -175,17 +273,37 @@ app.post('/tentit', async (req, res) => {
 })
 
 //kysymys lisäys
+//syöte: URL tenttiId oltava kokonaisluku, JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {  
   
   const id = Number(req.params.tenttiId)  
-  //const luokkaId = Number(req.params.kouluId)  
+  const nimi = String(req.body.nimi)
   
+  if(!nimi || !id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }      
+
   console.log ("nyt lisätään kysymys")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
-      result = await pool.query("INSERT INTO kysymys (nimi, tentti_id) VALUES ($1, $2) ",[req.body.nimi, id])
-      res.send('Kysymykset post ok')    
+      result = await pool.query("INSERT INTO kysymys (nimi, tentti_id) VALUES ($1, $2) returning id",[nimi, id])
+      
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+            
     }
     catch(e){
       res.status(500).send(e)
@@ -193,17 +311,37 @@ app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
 })
 
 //vastausvaihtoehto lisäys
+//syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
-  
+  const nimi = String(req.body.nimi)
+
+  if(!nimi || !id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }      
+
   console.log ("nyt lisätään vastausvaihtoehto")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
-      result = await pool.query("INSERT INTO vastausvaihtoehto (nimi, on_oikea, kysymys_id) VALUES ($1, false, $2) ",[req.body.nimi, id])
-      res.send('Vastausvaihtoehdot post ok')    
+      result = await pool.query("INSERT INTO vastausvaihtoehto (nimi, on_oikea, kysymys_id) VALUES ($1, false, $2) returning id",[nimi, id])
+      
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+            
     }
     catch(e){
       res.status(500).send(e)
@@ -212,17 +350,37 @@ app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
 
 //oppilaan vastaus lisäys, joka on post-metodin tuloksena aina true, koska oletuksena oppilaan vastauksen puuttuessa
 //kayttaja_vastaus taulusta, on vastauksen arvo false, put-metodilla boolean arvon muutokset
+//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO
 app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
   
   const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
   const kayttajaId = Number(req.params.kayttajaId)  
   
+  if(!vastausvaihtoehtoId || !kayttajaId) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }      
+
   console.log ("nyt lisätään oppilaan vastaus")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
-      result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) ",[kayttajaId, vastausvaihtoehtoId])
-      res.send('Kayttajat_vastaukset post ok')    
+      result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) returning id",[kayttajaId, vastausvaihtoehtoId])
+      
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+            
     }
     catch(e){
       res.status(500).send(e)
@@ -232,8 +390,9 @@ app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaj
 //tietyn käyttäjätunnuksen olemassaolon tarkistushaku tietokannassa, pal. boolean
 //tarkistettava käyttäjätunnus bodyssa muodossa {"kayttajanimi":"TARKISTETTAVA"}
 //tämä piti muuttaa .get->.post malliksi, jotta bodyssa json data tuli mukana
+//tämä jää tarpeettomaksi, kun kayttajanimi kenttä merkitty UNIQUE constraintilla tietokannassa
 //TODO 
-app.post('/kayttajat/', async (req, res) => {  
+/* app.post('/kayttajat/', async (req, res) => {  
   
   //const vastausvaihtoehtoId = Number(req.params.id)  
   //const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
@@ -261,80 +420,93 @@ app.post('/kayttajat/', async (req, res) => {
       res.status(500).send(e)
     }
 })
+*/
 
-//käyttäjätunnus+salasana parin olemassaolon tarkistushaku tietokannassa, pal. boolean
-//tarkistettava käyttäjätunnus+salasana bodyssa muodossa 
-//{"kayttajanimi":"TARKISTETTAVA", "salasana":"TARKISTETTAVA"}
-//tämä piti toteuttaa .get->.post malliksi, jotta bodyssa json data tuli mukana
-//TODO tietoturva(esim. salasanan + tietoliikenteen salaus), mikä paluuarvo tarvitaan?
-app.post('/kayttajat/tarkista', async (req, res) => {  
-  
-  //const vastausvaihtoehtoId = Number(req.params.id)  
-  //const kayttajaId = Number(req.params.kayttajaId) //vaatiiko Number muunnoksen?
-  
-  console.log ("nyt vahvistetaan käyttäjätunnus+salasana parin olemassaolo")
-  //console.log ("req.body: ", req.body)  
-  //console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
-    try {
-      result = await pool.query(
-        "select * from kayttaja where kayttajanimi = ($1) and salasana = ($2)", 
-        [req.body.kayttajanimi, req.body.salasana])
-      
-      //console.log ("result: ", result) 
-      //res.setHeader("Content-type", "application/json")      
-      if(result.rowCount == 0) { //käyttäjänimi+salasanaa ei löytynyt tietokannasta
-        res.send(false)
-      }
-      else { //käyttäjänimi löytyi tietokannasta jo
-        res.send(true)
-      }
-      //res.send(result.rows)
-      //res.send('Tais tentti GET onnistua')    
-    }
-    catch(e){
-      res.status(500).send(e)
-    }
-})
-
-
-//käyttäjänimen + salasanan lisäys kantaan
-//bodyssä json dataa muodossa {"kayttajanimi":"UUSI_TUNNUS", "salasana":"UUSI_SALASANA"}
+//käyttäjänimen + salasanan lisäys kantaan eli ns. käyttäjätunnuksen rekisteröinti
+//syöte: URL kayttajanimi, salasana oltava merkkijonoja
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei uutta sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tietoturvaominaisuudet(esim. salasanan salaus kannassa+liikenteessä)
-app.post('/kayttajat/uusi', async (req, res) => {  
+app.post('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {  
   
-  //const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
-  
+  const kayttajanimi = String(req.params.kayttajanimi)  
+  const salasana = String(req.params.salasana)  
+
+  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }      
+
   console.log ("nyt lisätään kayttajatunnus+salasana")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
-      result = await pool.query("INSERT INTO kayttaja (kayttajanimi, salasana, on_yllapitaja) VALUES ($1, $2, false) ",[req.body.kayttajanimi, req.body.salasana])
-      res.send('Käyttäjät/uusi post ok')    
+      result = await pool.query("INSERT INTO kayttaja (kayttajanimi, salasana, on_yllapitaja) VALUES ($1, $2, false) returning id",
+      [kayttajanimi, salasana])
+
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+       
     }
     catch(e){
-      res.status(500).send(e)
+      if(e.constraint == "kayttaja_kayttajanimi_key") {
+        //käyttäjätunnus löytyy jo, uutta dataa ei luotu
+        res.status(204).send(e)
+      }
+      else { //jokin muu poikkeus tietokantahaussa
+        res.status(500).send(e)
+      }      
     }
 })
 
 
 //tentin poisto
+//syöte: URL id oltava kokonaisluku
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 //TODO pitäisikö poistaa samalla tenttiin liittyvä data myös? ja vaatiiko ne transaktion käyttöä?
 app.delete('/tentit/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
+  
+  if(!id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
   
   console.log ("nyt poistetaan tenttiä")
   console.log ("tenttiID: ",id)
     try {
       result = await pool.query("delete from tentti where id = ($1)",[id])
-      res.send('Tentti delete ok')    
+      
+      if(result.rowCount > 0) { //poisto ok
+        res.status(204).send(result.rows)
+      }
+      else { //käsitelty, dataa ei ollut
+        res.status(404).send(result)
+      }
+            
     }
     catch(e){
       res.status(500).send(e)
     }
 })
+
+JATKA TÄSTÄ!!!
 
 //kysymys poisto
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
@@ -454,5 +626,5 @@ app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaja
 
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Tentti app listening on port ${port}`)
 })
