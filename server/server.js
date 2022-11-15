@@ -64,6 +64,8 @@ app.post('/', (req, res) => {
 })
  */
 
+
+TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tenttien haku
 //syöte: -
 //tulos: JSON [id, nimi]
@@ -234,7 +236,7 @@ app.get('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {
     }
 })
 
-
+TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin lisäys
 //syöte: JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
 //tulos: JSON [result.rows]
@@ -457,6 +459,7 @@ app.post('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {
        
     }
     catch(e){
+      Pitäiskö seur. if lohko ehto saada paremmin db rakenne riippumattomammaksi?
       if(e.constraint == "kayttaja_kayttajanimi_key") {
         //käyttäjätunnus löytyy jo, uutta dataa ei luotu
         res.status(204).send(e)
@@ -468,6 +471,7 @@ app.post('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {
 })
 
 
+TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin poisto
 //syöte: URL id oltava kokonaisluku
 //tulos: JSON [result.rows]
@@ -506,59 +510,145 @@ app.delete('/tentit/:id', async (req, res) => {
     }
 })
 
-JATKA TÄSTÄ!!!
 
 //kysymys poisto
+//syöte: URL id oltava kokonaisluku
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
-//TODO liittyvien tietojen(mm. vastausvaihtoehtojen) poisto samalla toiminnolla?
+//TODO liittyvien tietojen(mm. vastausvaihtoehtojen) poisto samalla toiminnolla?->ok
 app.delete('/kysymykset/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
   
+  if(!id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
+    
   console.log ("nyt poistetaan kysymys")
   console.log ("kysymysID: ",id)
+
+  const client = pool.connect()
+  if( !client ) { //db yhteys epäonnistui
+    res.status(500).send()
+    return
+  }
     try {
-      result = await pool.query("delete from kysymys where id = ($1)",[id])
-      res.send('Kysymys delete ok')    
+      await client.query('BEGIN')
+
+      //käyttäjän vastausten poisto
+      result = await client.query("delete from kayttaja_vastaus where kayttaja_vastaus.vastausvaihtoehto_id in (select id from vastausvaihtoehto where kysymys_id = ($1) )",[id])
+      result = await client.query("delete from vastausvaihtoehdot where kysymys_id = ($1) ", [id])
+      result = await client.query("delete from kysymys where id = ($1)",[id])
+      await client.query('COMMIT')
+
+      if(result.rowCount > 0) { //poisto ok
+        res.status(204).send(result.rows)
+      }
+      else { //käsitelty, dataa ei ollut
+        res.status(404).send(result)
+      }      
     }
-    catch(e){
+    catch(e) {
+      await client.query('ROLLBACK')
       res.status(500).send(e)
+    }
+    finally {
+      await client.release()
     }
 })
 
 //vastausvaihtoehto poisto
+//syöte: URL id oltava kokonaisluku
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
-//TODO liittyvien tietojen poisto samalla toiminnolla?, transaktiot avuksi?
+//TODO liittyvien tietojen poisto samalla toiminnolla?, transaktiot avuksi?->ok
 app.delete('/vastausvaihtoehdot/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
+
+  if(!id) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
   
   console.log ("nyt poistetaan vastausvaihtoehto")
   console.log ("vastausvaihtoehtoID: ",id)
+
+  const client = pool.connect()
+  if( !client ) { //db yhteys epäonnistui
+    res.status(500).send()
+    return
+  }
+
     try {
-      result = await pool.query("delete from vastausvaihtoehto where id = ($1)",[id])
-      res.send('Vastausvaihtoehto delete ok')    
+      result = await client.query("delete from kayttaja_vastaus where vastausvaihtoehto_id = ($1)",[id])
+      result = await client.query("delete from vastausvaihtoehto where id = ($1)",[id])
+      await client.query('COMMIT')
+
+      if(result.rowCount > 0) { //poisto ok
+        res.status(204).send(result.rows)
+      }
+      else { //käsitelty, dataa ei ollut
+        res.status(404).send(result)
+      }      
+      
     }
     catch(e){
+      await client.query('ROLLBACK')
       res.status(500).send(e)
     }
+    finally {
+      await client.release()
+    }
+         
 })
 
-
-//tentin nimen muokkaus
+TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
+//tentin ominaisuuksien muokkaus
+//syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"} NIMI oltava merkkijono
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.put('/tentit/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
+  const nimi = String(req.body.nimi)
   
-  console.log ("nyt muokataan tentti nimeä")
+  if(!id || !nimi) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
+    
+  console.log ("nyt muokataan tentti ominaisuuksia")
   console.log ("tenttiID: ",id)
     try {
-      result = await pool.query("update tentti set nimi = ($1) where id = ($2)",[req.body.nimi, id])
-      res.send('Tais datan tallennus onnistua')    
+      result = await pool.query("update tentti set nimi = ($1) where id = ($2) returning *",[nimi, id])
+
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+     
     }
     catch(e){
       res.status(500).send(e)
@@ -566,17 +656,36 @@ app.put('/tentit/:id', async (req, res) => {
 })
 
 //kysymys nimen muokkaus
+//syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"} NIMI oltava merkkijono
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.put('/kysymykset/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
+  const nimi = String(req.body.nimi)
   
+  if(!id || !nimi) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
+   
   console.log ("nyt muokataan kysymys nimeä")
   console.log ("kysymysID: ",id)
     try {
-      result = await pool.query("update kysymys set nimi = ($1) where id = ($2)",[req.body.nimi, id])
-      res.send('Kysymys put ok')    
+      result = await pool.query("update kysymys set nimi = ($1) where id = ($2) returning *",[nimi, id])
+
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      } 
     }
     catch(e){
       res.status(500).send(e)
@@ -585,18 +694,39 @@ app.put('/kysymykset/:id', async (req, res) => {
 
 
 //vastausvaihtoehdon ominaisuuksien muokkaus
+//syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI","on_oikea":BOOLEAN} NIMI oltava merkkijono, BOOLEAN oltava boolean arvo
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.put('/vastausvaihtoehdot/:id', async (req, res) => {  
   
   const id = Number(req.params.id)  
-  //const luokkaId = Number(req.params.kouluId)  
+  const nimi = String(req.body.nimi)
+  const on_oikea = Boolean(req.body.on_oikea)
   
+  if(!id || !nimi || on_oikea === undefined ) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }     
+    
   console.log ("nyt muokataan vastausvaihtoehdon ominaisuuksia")
   console.log ("vastausvaihtoehtoID: ",id)
     try {
-      result = await pool.query("update vastausvaihtoehto set nimi = ($1), on_oikea = ($2) where id = ($3)",
-      [req.body.nimi, req.body.on_oikea, id])
-      res.send('Vastausvaihtoehto put ok')    
+      result = await pool.query("update vastausvaihtoehto set nimi = ($1), on_oikea = ($2) where id = ($3) returning *",
+      [nimi, on_oikea, id])
+
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }  
+      
     }
     catch(e){
       res.status(500).send(e)
@@ -604,6 +734,14 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
 })
 
 //vastauksen muokkaus, vastauksen uusi arvo bodyyn json syntaksilla: {"valittu":false} || {"valittu":true}
+//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku, 
+//JSON {"valittu":BOOLEAN} BOOLEAN oltava boolean arvo
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
 //TODO
 app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
   
@@ -611,13 +749,26 @@ app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaja
   const kayttajaId = Number(req.params.kayttajaId)  
   const valittu = req.body.valittu
   
+  if(!vastausvaihtoehtoId || !kayttajaId || valittu === undefined ) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }
+
   console.log ("nyt muokataan vastausta")
   console.log ("vastausvaihtoehtoID: ",vastausvaihtoehtoId)
   console.log ("valittu: ",valittu)
     try {
-      result = await pool.query("update kayttaja_vastaus set valittu = ($1) where kayttaja_id = ($2) and vastausvaihtoehto_id = ($3)",
+      result = await pool.query("update kayttaja_vastaus set valittu = ($1) where kayttaja_id = ($2) and vastausvaihtoehto_id = ($3) returning *",
       [valittu, kayttajaId, vastausvaihtoehtoId])
-      res.send('Kayttajat_vastaukset put ok')    
+
+      if(result.rowCount > 0) { //muokkaus ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+      
     }
     catch(e){
       res.status(500).send(e)
