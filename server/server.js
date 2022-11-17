@@ -9,6 +9,11 @@ const { restart } = require('nodemon');
 const app = express()
 const port = 8080
 
+const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+const e = require('cors');
+const saltRounds = 10;
+
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -64,8 +69,188 @@ app.post('/', (req, res) => {
 })
  */
 
+let salasana = "salasana"
+let kayttajanimi = "vilho@gmail.com"
 
-TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
+//käyttäjänimen + salasanan lisäys kantaan eli ns. käyttäjätunnuksen rekisteröinti
+//syöte: JSON {"kayttajanimi":"KAYTTAJANIMI", "salasana":"SALASANA"}, kayttajanimi, salasana oltava merkkijonoja
+//tulos: JSON [success, data]
+//HTTP vastauskoodit
+//201 data luonti OK
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
+//TODO tietoturvaominaisuudet(esim. salasanan salaus kannassa+liikenteessä)
+app.post('/rekisterointi', async (req, res, next) => {  
+  
+  const kayttajanimi = String(req.body.kayttajanimi)  
+  const salasana = String(req.body.salasana)  
+
+  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return //next()??
+  }      
+  
+  let result;
+  console.log ("nyt lisätään kayttajatunnus+salasana")
+  
+    try {
+      let tiiviste = await bcrypt.hash(salasana, saltRounds) //tiivisteen luonti
+      result = await pool.query("INSERT INTO kayttaja (kayttajanimi, salasana, on_yllapitaja) VALUES ($1, $2, false) returning id",
+      [kayttajanimi, tiiviste])
+
+    }
+    catch(e){
+      //TODO Pitäiskö seur. if lohko ehto saada paremmin db rakenne riippumattomammaksi?
+      if(e.constraint == "kayttaja_kayttajanimi_key") {
+        //käyttäjätunnus luotu jo aiemmin, uutta dataa ei luotu
+        res.status(204).send(e)
+      }
+      else { //jokin muu poikkeus tietokantahaussa
+        res.status(500).send(e)
+      }
+      return      
+    }
+
+    
+    let token;
+    try {
+      token = jwt.sign(
+        { kayttajaId: result.rows[0].id, kayttajanimi: kayttajanimi, on_yllapitaja: false },
+        "secretkeyappearshere",
+        { expiresIn: "1h" }
+      );
+    } catch (err) {
+      res.status(500).send(e) //jotain poikkeavaa tapahtui
+      return
+    }
+
+    res
+    .status(201)
+    .json({
+      success: true,
+      data: { kayttajaId: result.rows[0].id,
+          kayttajanimi: kayttajanimi, on_yllapitaja: false,
+          token: token },
+    });
+
+  })
+
+  
+//käyttäjätunnus+salasana parin olemassaolon tarkistushaku tietokannassa->kirjautuminen
+//syöte: body {kayttajanimi, salasana} oltava merkkijonoja
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//200 haku OK
+//401 autentikointi epäonnistui
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
+//TODO tietoturva(esim. salasanan + tietoliikenteen salaus), mikä paluuarvo tarvitaan?
+app.post('/kirjautuminen', async (req, res, next) => {  
+  
+  const kayttajanimi = String(req.body.kayttajanimi)
+  const salasana = String(req.body.salasana) 
+  
+  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }    
+
+  console.log ("nyt vahvistetaan käyttäjätunnus+salasana parin olemassaolo")
+  //console.log ("req.body: ", req.body)  
+  //console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
+
+  let olemassaolevaKayttaja
+  let salasanaTasmays = false
+    try {
+      result = await pool.query(
+        "select * from kayttaja where kayttajanimi = ($1)", 
+        [kayttajanimi])
+      
+      olemassaolevaKayttaja = {id: result.rows[0].id, 
+        kayttajanimi: result.rows[0].kayttajanimi,
+        salasana: result.rows[0].salasana,
+        on_yllapitaja: result.rows[0].on_yllapitaja}
+      
+      salasanaTasmays = await bcrypt.compare(salasana, olemassaolevaKayttaja.salasana)  
+      //console.log ("result: ", result) 
+      //res.setHeader("Content-type", "application/json")      
+      //res.status(200).send(result.rows)
+      
+      //res.send(result.rows)
+      
+    }
+    catch(e){
+      res.status(500).send(e)
+      return
+    }
+
+    if( !olemassaolevaKayttaja || !salasanaTasmays ) {
+      res.status(401).send(e)
+      return
+    }
+    let token
+    try {
+      //luodaan jwt token
+      token = jwt.sign(
+        { kayttajaId: olemassaolevaKayttaja.id,
+        kayttajanimi: olemassaolevaKayttaja.kayttajanimi,
+        on_yllapitaja: olemassaolevaKayttaja.on_yllapitaja },
+        "secretkeyappearshere",  //dotenv!! tätä hyvä käyttää!!
+        { expiresIn: "1h"}
+      )      
+    }
+    catch( e ) {
+      res.status(500).send(e)
+      return
+    }
+
+    res.status(200).json({ success: true,
+      data: {
+        kayttajaId: olemassaolevaKayttaja.id,
+        kayttajanimi: olemassaolevaKayttaja.kayttajanimi,
+        on_yllapitaja: olemassaolevaKayttaja.on_yllapitaja,
+        token: token
+      }
+    })
+
+})
+
+
+const vahvistaToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]
+  //tarvitaan Header  Authorization: 'bearer TOKEN'
+  if(!token) {
+    res.status(200).json(
+      {success: false,
+      message: "Error! Tokenia ei ole toimitettu/puuttuu."}
+    )
+    return //next()
+  }
+
+  //dekoodataan TOKEN
+  const decodedToken = jwt.verify(token, "secretkeyappearshere")
+  req.decoded = decodedToken
+  next()
+}
+
+//vaaditaan token vahvistus kaikille metodeille tästä rivistä eteenpäin
+app.use(vahvistaToken)
+
+//TEST
+app.get('/', async (req, res) => {
+  console.log(req.decoded)
+  res.send("Nyt ollaan kirjautumista vaativassa palvelussa")
+})
+
+//TODO
+//  JATKA TÄSTÄ, ehkä myös lisää on_yllapitaja to token, lisäksi vain admin oikeus suorittaa
+//  varten pitäisi luoda oma erillinen middleware tarkastusfunktio ennen varsinaisen funktion suoritusta
+
+
+
+//TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tenttien haku
 //syöte: -
 //tulos: JSON [id, nimi]
@@ -197,46 +382,8 @@ app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, 
     }
 })
 
-//käyttäjätunnus+salasana parin olemassaolon tarkistushaku tietokannassa
-//syöte: URL kayttajanimi, salasana oltava merkkijonoja
-//tulos: JSON [result.rows]
-//HTTP vastauskoodit
-//200 haku OK
-//422 syötesyntaksivirhe
-//500 palvelinvirhe
-//TODO tietoturva(esim. salasanan + tietoliikenteen salaus), mikä paluuarvo tarvitaan?
-app.get('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {  
-  
-  const kayttajanimi = String(req.params.kayttajanimi)
-  const salasana = String(req.params.salasana) 
-  
-  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
-    console.log("syötesyntaksivirhe")
-    res.status(422).send()
-    return
-  }    
 
-  console.log ("nyt vahvistetaan käyttäjätunnus+salasana parin olemassaolo")
-  //console.log ("req.body: ", req.body)  
-  //console.log ("req.body.kayttajanimi: ", req.body.kayttajanimi)
-    try {
-      result = await pool.query(
-        "select id, on_yllapitaja from kayttaja where kayttajanimi = ($1) and salasana = ($2)", 
-        [kayttajanimi, salasana])
-      
-      //console.log ("result: ", result) 
-      res.setHeader("Content-type", "application/json")      
-      res.status(200).send(result.rows)
-      
-      //res.send(result.rows)
-      //res.send('Tais tentti GET onnistua')    
-    }
-    catch(e){
-      res.status(500).send(e)
-    }
-})
-
-TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
+//TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin lisäys
 //syöte: JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
 //tulos: JSON [result.rows]
@@ -424,54 +571,9 @@ app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaj
 })
 */
 
-//käyttäjänimen + salasanan lisäys kantaan eli ns. käyttäjätunnuksen rekisteröinti
-//syöte: URL kayttajanimi, salasana oltava merkkijonoja
-//tulos: JSON [result.rows]
-//HTTP vastauskoodit
-//201 data luonti OK
-//204 käsitelty, ei uutta sisältöä
-//422 syötesyntaksivirhe
-//500 palvelinvirhe
-//TODO tietoturvaominaisuudet(esim. salasanan salaus kannassa+liikenteessä)
-app.post('/kayttajat/:kayttajanimi/:salasana', async (req, res) => {  
-  
-  const kayttajanimi = String(req.params.kayttajanimi)  
-  const salasana = String(req.params.salasana)  
-
-  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
-    console.log("syötesyntaksivirhe")
-    res.status(422).send()
-    return
-  }      
-
-  console.log ("nyt lisätään kayttajatunnus+salasana")
-  //console.log ("tenttiNimi: ",req.body.nimi)
-    try {
-      result = await pool.query("INSERT INTO kayttaja (kayttajanimi, salasana, on_yllapitaja) VALUES ($1, $2, false) returning id",
-      [kayttajanimi, salasana])
-
-      if(result.rowCount > 0) { //lisäys ok
-        res.status(201).send(result.rows)
-      }
-      else { //käsitelty, uutta dataa ei luotu
-        res.status(204).send(result)
-      }
-       
-    }
-    catch(e){
-      Pitäiskö seur. if lohko ehto saada paremmin db rakenne riippumattomammaksi?
-      if(e.constraint == "kayttaja_kayttajanimi_key") {
-        //käyttäjätunnus löytyy jo, uutta dataa ei luotu
-        res.status(204).send(e)
-      }
-      else { //jokin muu poikkeus tietokantahaussa
-        res.status(500).send(e)
-      }      
-    }
-})
 
 
-TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
+//TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin poisto
 //syöte: URL id oltava kokonaisluku
 //tulos: JSON [result.rows]
@@ -616,7 +718,7 @@ app.delete('/vastausvaihtoehdot/:id', async (req, res) => {
          
 })
 
-TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
+//TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin ominaisuuksien muokkaus
 //syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"} NIMI oltava merkkijono
 //tulos: JSON [result.rows]
