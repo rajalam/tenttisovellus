@@ -244,9 +244,6 @@ app.get('/', async (req, res) => {
   res.send("Nyt ollaan kirjautumista vaativassa palvelussa")
 })
 
-//TODO
-//  JATKA TÄSTÄ, ehkä myös lisää on_yllapitaja to token, lisäksi vain admin oikeus suorittaa
-//  varten pitäisi luoda oma erillinen middleware tarkastusfunktio ennen varsinaisen funktion suoritusta
 
 
 
@@ -382,6 +379,106 @@ app.get('/vastausvaihtoehdot/:id/kayttajat_vastaukset/:kayttajaId', async (req, 
     }
 })
 
+//oppilaan vastaus lisäys, joka on post-metodin tuloksena aina true, koska oletuksena oppilaan vastauksen puuttuessa
+//kayttaja_vastaus taulusta, on vastauksen arvo false, put-metodilla boolean arvon muutokset
+//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//201 data luonti OK
+//204 käsitelty, ei sisältöä
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
+//TODO
+app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
+  
+  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
+  const kayttajaId = Number(req.params.kayttajaId)  
+  
+  if(!vastausvaihtoehtoId || !kayttajaId) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }      
+
+  console.log ("nyt lisätään oppilaan vastaus")
+  //console.log ("tenttiNimi: ",req.body.nimi)
+    try {
+      result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) returning id",[kayttajaId, vastausvaihtoehtoId])
+      
+      if(result.rowCount > 0) { //lisäys ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+            
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//vastauksen muokkaus, vastauksen uusi arvo bodyyn json syntaksilla: {"valittu":false} || {"valittu":true}
+//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku, 
+//JSON {"valittu":BOOLEAN} BOOLEAN oltava boolean arvo
+//tulos: JSON [result.rows]
+//HTTP vastauskoodit
+//204 käsitelty, ei uutta sisältöä
+//404 resurssia ei löydy
+//422 syötesyntaksivirhe
+//500 palvelinvirhe
+//TODO
+app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
+  
+  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
+  const kayttajaId = Number(req.params.kayttajaId)  
+  const valittu = req.body.valittu
+  
+  if(!vastausvaihtoehtoId || !kayttajaId || valittu === undefined ) { //syötesyntaksivirhe
+    console.log("syötesyntaksivirhe")
+    res.status(422).send()
+    return
+  }
+
+  console.log ("nyt muokataan vastausta")
+  console.log ("vastausvaihtoehtoID: ",vastausvaihtoehtoId)
+  console.log ("valittu: ",valittu)
+    try {
+      result = await pool.query("update kayttaja_vastaus set valittu = ($1) where kayttaja_id = ($2) and vastausvaihtoehto_id = ($3) returning *",
+      [valittu, kayttajaId, vastausvaihtoehtoId])
+
+      if(result.rowCount > 0) { //muokkaus ok
+        res.status(201).send(result.rows)
+      }
+      else { //käsitelty, uutta dataa ei luotu
+        res.status(204).send(result)
+      }
+      
+    }
+    catch(e){
+      res.status(500).send(e)
+    }
+})
+
+//tarkistetaan, että käyttäjällä ylläpitokäyttäjäoikeudet(admin)
+const vahvistaYllapitajaOikeudet = (req, res, next) => {
+  if( !req.decoded?.on_yllapitaja ) {
+    res.status(200).json(
+      {success: false,
+      message: "Error! Käyttäjällä ei ylläpitäjän käyttöoikeutta."}
+    )
+    return    
+  }
+  next()
+}
+
+//vaaditaan admin käyttäjäoikeudet kaikille metodeille tästä rivistä eteenpäin
+app.use(vahvistaYllapitajaOikeudet)
+
+TODO
+  JATKA TÄSTÄ, ehkä myös lisää on_yllapitaja to token, lisäksi vain admin oikeus suorittaa
+  varten pitäisi luoda oma erillinen middleware tarkastusfunktio ennen varsinaisen funktion suoritusta
+
 
 //TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin lisäys
@@ -497,44 +594,6 @@ app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
     }
 })
 
-//oppilaan vastaus lisäys, joka on post-metodin tuloksena aina true, koska oletuksena oppilaan vastauksen puuttuessa
-//kayttaja_vastaus taulusta, on vastauksen arvo false, put-metodilla boolean arvon muutokset
-//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku
-//tulos: JSON [result.rows]
-//HTTP vastauskoodit
-//201 data luonti OK
-//204 käsitelty, ei sisältöä
-//422 syötesyntaksivirhe
-//500 palvelinvirhe
-//TODO
-app.post('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
-  
-  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
-  const kayttajaId = Number(req.params.kayttajaId)  
-  
-  if(!vastausvaihtoehtoId || !kayttajaId) { //syötesyntaksivirhe
-    console.log("syötesyntaksivirhe")
-    res.status(422).send()
-    return
-  }      
-
-  console.log ("nyt lisätään oppilaan vastaus")
-  //console.log ("tenttiNimi: ",req.body.nimi)
-    try {
-      result = await pool.query("INSERT INTO kayttaja_vastaus (valittu, kayttaja_id, vastausvaihtoehto_id) VALUES (true, $1 , $2) returning id",[kayttajaId, vastausvaihtoehtoId])
-      
-      if(result.rowCount > 0) { //lisäys ok
-        res.status(201).send(result.rows)
-      }
-      else { //käsitelty, uutta dataa ei luotu
-        res.status(204).send(result)
-      }
-            
-    }
-    catch(e){
-      res.status(500).send(e)
-    }
-})
 
 //tietyn käyttäjätunnuksen olemassaolon tarkistushaku tietokannassa, pal. boolean
 //tarkistettava käyttäjätunnus bodyssa muodossa {"kayttajanimi":"TARKISTETTAVA"}
@@ -835,47 +894,6 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
     }
 })
 
-//vastauksen muokkaus, vastauksen uusi arvo bodyyn json syntaksilla: {"valittu":false} || {"valittu":true}
-//syöte: URL vastausvaihtoehtoId, kayttajaId oltava kokonaisluku, 
-//JSON {"valittu":BOOLEAN} BOOLEAN oltava boolean arvo
-//tulos: JSON [result.rows]
-//HTTP vastauskoodit
-//204 käsitelty, ei uutta sisältöä
-//404 resurssia ei löydy
-//422 syötesyntaksivirhe
-//500 palvelinvirhe
-//TODO
-app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttajaId', async (req, res) => {  
-  
-  const vastausvaihtoehtoId = Number(req.params.vastausvaihtoehtoId)  
-  const kayttajaId = Number(req.params.kayttajaId)  
-  const valittu = req.body.valittu
-  
-  if(!vastausvaihtoehtoId || !kayttajaId || valittu === undefined ) { //syötesyntaksivirhe
-    console.log("syötesyntaksivirhe")
-    res.status(422).send()
-    return
-  }
-
-  console.log ("nyt muokataan vastausta")
-  console.log ("vastausvaihtoehtoID: ",vastausvaihtoehtoId)
-  console.log ("valittu: ",valittu)
-    try {
-      result = await pool.query("update kayttaja_vastaus set valittu = ($1) where kayttaja_id = ($2) and vastausvaihtoehto_id = ($3) returning *",
-      [valittu, kayttajaId, vastausvaihtoehtoId])
-
-      if(result.rowCount > 0) { //muokkaus ok
-        res.status(201).send(result.rows)
-      }
-      else { //käsitelty, uutta dataa ei luotu
-        res.status(204).send(result)
-      }
-      
-    }
-    catch(e){
-      res.status(500).send(e)
-    }
-})
 
 
 app.listen(port, () => {
