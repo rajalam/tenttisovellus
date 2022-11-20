@@ -1,6 +1,7 @@
 const bodyparser = require('body-parser')
-//const fs = require('fs');
-const fs = require('fs').promises;
+const fs = require('fs');
+//const fs = require('fs').promises;
+const https = require('https')
 const express = require('express')  //Jos ei toimi, niin "npm install express"
 
 const cors = require('cors')
@@ -27,6 +28,22 @@ app.use(express.json());  //Ja jos haluaa bodyn suoraan req argumentista
 app.use(bodyparser.urlencoded({extended:false}))
 app.use(bodyparser.json())
 
+// Create a NodeJS HTTPS listener on port 4000 that points to the Express app
+// Use a callback function to tell when the server is created.
+https
+  .createServer(
+    // Provide the private and public key to the server by reading each
+		// file's content with the readFileSync() method.
+    {
+      key: fs.readFileSync("key.pem"),
+      cert: fs.readFileSync("cert.pem"),
+    },
+    app
+  )
+  .listen(4000, ()=>{
+    console.log('server is running at port 4000')
+  });
+
 //tarvitaanko seuraavaa??
 /* app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -52,15 +69,20 @@ const write = async (req) => {
 }
  */
 
-/* 
+ /*
+
 app.get('/', (req, res) => {
-  console.log("Palvelimelta kysellään dataa")
+  //console.log("Palvelimelta kysellään dataa")
+  res.send("Hello from express server.")
   //res.send('Hello!')
-  const data = read()
-  console.log("Datan sisältö read tuloksena", data)
-  res.send(data) // tiedon luku asynkronisesti
+  //const data = read()
+  //console.log("Datan sisältö read tuloksena", data)
+  //res.send(data) // tiedon luku asynkronisesti
 })
 
+
+
+/*
 app.post('/', (req, res) => {
   console.log("Palvelimelle tallennetaan dataa")
   write(req)// tiedon kirjoitus asynkronisesti  req.body antanee tarvittavan datan
@@ -187,7 +209,7 @@ app.post('/kirjautuminen', async (req, res, next) => {
     }
 
     if( !olemassaolevaKayttaja || !salasanaTasmays ) {
-      res.status(401).send(e)
+      res.status(401).send(e) //tarkasta käyttäjätunnus ja salasana asiakkaalle
       return
     }
     let token
@@ -475,9 +497,9 @@ const vahvistaYllapitajaOikeudet = (req, res, next) => {
 //vaaditaan admin käyttäjäoikeudet kaikille metodeille tästä rivistä eteenpäin
 app.use(vahvistaYllapitajaOikeudet)
 
-TODO
-  JATKA TÄSTÄ, ehkä myös lisää on_yllapitaja to token, lisäksi vain admin oikeus suorittaa
-  varten pitäisi luoda oma erillinen middleware tarkastusfunktio ennen varsinaisen funktion suoritusta
+//TODO
+//  JATKA TÄSTÄ, ehkä myös lisää on_yllapitaja to token, lisäksi vain admin oikeus suorittaa
+//  varten pitäisi luoda oma erillinen middleware tarkastusfunktio ennen varsinaisen funktion suoritusta
 
 
 //TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
