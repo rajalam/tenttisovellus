@@ -138,7 +138,7 @@ app.post('/rekisterointi', async (req, res, next) => {
     let token;
     try {
       token = jwt.sign(
-        { kayttajaId: result.rows[0].id, kayttajanimi: kayttajanimi, on_yllapitaja: false },
+        { kayttajaId: result.rows[0].id, kayttajanimi: kayttajanimi },
         "secretkeyappearshere",
         { expiresIn: "1h" }
       );
@@ -152,7 +152,7 @@ app.post('/rekisterointi', async (req, res, next) => {
     .json({
       success: true,
       data: { kayttajaId: result.rows[0].id,
-          kayttajanimi: kayttajanimi, on_yllapitaja: false,
+          kayttajanimi: kayttajanimi, 
           token: token },
     });
 
@@ -192,8 +192,7 @@ app.post('/kirjautuminen', async (req, res, next) => {
       
       olemassaolevaKayttaja = {id: result.rows[0].id, 
         kayttajanimi: result.rows[0].kayttajanimi,
-        salasana: result.rows[0].salasana,
-        on_yllapitaja: result.rows[0].on_yllapitaja}
+        salasana: result.rows[0].salasana}
       
       salasanaTasmays = await bcrypt.compare(salasana, olemassaolevaKayttaja.salasana)  
       //console.log ("result: ", result) 
@@ -217,8 +216,7 @@ app.post('/kirjautuminen', async (req, res, next) => {
       //luodaan jwt token
       token = jwt.sign(
         { kayttajaId: olemassaolevaKayttaja.id,
-        kayttajanimi: olemassaolevaKayttaja.kayttajanimi,
-        on_yllapitaja: olemassaolevaKayttaja.on_yllapitaja },
+        kayttajanimi: olemassaolevaKayttaja.kayttajanimi },
         "secretkeyappearshere",  //dotenv!! tätä hyvä käyttää!!
         { expiresIn: "1h"}
       )      
@@ -232,7 +230,6 @@ app.post('/kirjautuminen', async (req, res, next) => {
       data: {
         kayttajaId: olemassaolevaKayttaja.id,
         kayttajanimi: olemassaolevaKayttaja.kayttajanimi,
-        on_yllapitaja: olemassaolevaKayttaja.on_yllapitaja,
         token: token
       }
     })
@@ -483,15 +480,24 @@ app.put('/vastausvaihtoehdot/:vastausvaihtoehtoId/kayttajat_vastaukset/:kayttaja
 })
 
 //tarkistetaan, että käyttäjällä ylläpitokäyttäjäoikeudet(admin)
-const vahvistaYllapitajaOikeudet = (req, res, next) => {
-  if( !req.decoded?.on_yllapitaja ) {
-    res.status(200).json(
-      {success: false,
-      message: "Error! Käyttäjällä ei ylläpitäjän käyttöoikeutta."}
-    )
-    return    
+//OAUTH2,  NODE express passport plugin (gmail, facebook...)
+const vahvistaYllapitajaOikeudet = async (req, res, next) => {
+  
+  try {
+    result = await pool.query("SELECT * FROM kayttaja WHERE kayttajanimi = $1 ", [req.decoded?.kayttajanimi])
+    let yllapitaja = result.rows[0].on_yllapitaja
+    if (yllapitaja) { 
+      next() 
+    } else {
+      res.status(401).send("Error! Käyttäjällä ei ylläpitäjän käyttöoikeutta.")
+      return
+    }    
   }
-  next()
+  catch (e) {
+    res.status(500).send(e)
+    return
+  }
+
 }
 
 //vaaditaan admin käyttäjäoikeudet kaikille metodeille tästä rivistä eteenpäin
@@ -918,6 +924,8 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
 
 
 
-app.listen(port, () => {
+/*
+ app.listen(port, () => {
   console.log(`Tentti app listening on port ${port}`)
-})
+}) 
+*/
