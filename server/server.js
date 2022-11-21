@@ -489,7 +489,7 @@ const vahvistaYllapitajaOikeudet = async (req, res, next) => {
     if (yllapitaja) { 
       next() 
     } else {
-      res.status(401).send("Error! Käyttäjällä ei ylläpitäjän käyttöoikeutta.")
+      res.status(403).send("Error! Käyttäjällä ei ylläpitäjän käyttöoikeutta.")
       return
     }    
   }
