@@ -172,7 +172,8 @@ app.post('/kirjautuminen', async (req, res, next) => {
   
   const kayttajanimi = String(req.body.kayttajanimi)
   const salasana = String(req.body.salasana) 
-  
+ 
+  console.log ("/kirjautuminen POST")
   if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()

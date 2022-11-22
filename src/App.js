@@ -4,6 +4,7 @@ import './App.css';
 import Tentti from './Tentti';
 import { useState, useReducer, useEffect } from "react"
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
+import Kirjautuminen from './Kirjautuminen';
 //import Kysymys from './Kysymys';
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
@@ -244,6 +245,12 @@ const TenttiSovellus = () => {
     const haeData = async () => {
 
       try {
+        //tässä kohtaa voi hakea kaikki tenttitiedot(kaikki tentit) db:sta, 
+        //toinen useEffect voi hoitaa tietyn tentin tiedot, kun tietty tentti valittu
+        //reducerissa hoidetaan reactin tilaa
+        //esim. toast kirjasto eri virheiden näyttöön käyttäjälle
+        //JSON objekti pitää rakentaa ja pyörittää jossain, joko palvelimella tai reactin puolella
+
         const result = await axios('http://localhost:8080');
         console.log("get result:", result)
         //dispatch({ type: "ALUSTA_DATA", payload: result.data })
@@ -328,9 +335,11 @@ const TenttiSovellus = () => {
 
       {/* <Header /> */}
       <div>
+        {/* 
         {appData.tietoAlustettu && appData.tentit.map((tentti, index) =>
           <Tentti tentti={tentti} tenttiIndex={index} dispatch={dispatch} />)}
-
+        */}
+        <Kirjautuminen/>
       </div>
 
       {/* <div>
