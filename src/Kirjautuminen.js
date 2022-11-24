@@ -10,13 +10,14 @@ const Kirjautuminen = (props) => {
 
       {/* Jos käyttäjätunnus/salasana pari syötetty ja tarkkailtu->ei toiminut, 
         näytetään käyttäjälle "Tarkasta käyttäjätunnus/salasana" */}
-      <h4>Syötä käyttäjätunnus ja salasana</h4>
+      <b color="red">{props.virhetila && props.virheilmoitus}  </b>
+      <h4>Kirjaudu</h4>
 
       <form onSubmit={async (event) => {
           /* tähän väliin axios pyynnöt, try-catch, token tallennus localstorageen */
           /* alert('here') */
           /*  TÄHÄN LISÄÄ HEADER + tarkista miten req . bodyyn saa axios kamaa,
-                  Content-Type : application/json, vt. https://masteringjs.io/tutorials/axios/json */
+          Content-Type : application/json, vt. https://masteringjs.io/tutorials/axios/json */
           event.preventDefault()
           try {
             //alert('here') 
@@ -37,32 +38,32 @@ const Kirjautuminen = (props) => {
             }
             //console.log("post tulos: ", result.data.data)
             props.dispatch({
-              type: "SISAANKIRJAUTUNUT_KAYTTAJA",
+              type: "SISAANKIRJATTU_KAYTTAJA",
               payload:
               {
-                tunnus: event.target.tunnus.value,
-                salasana: event.target.salasana.value
+                virhetila: false,
+                virheilmoitus: "",
+                kirjautunut: true
               }
             })
           } catch (error) {
             //TODO virhekäsittely, geneerinen virhedispatch, esim. case "VIRHE", vt. heikki mallidemo
             console.log("error tulos: ", error)
             props.dispatch({
-              type: "VIRHE",
+              type: "VIRHE_TAPAHTUI",
               payload:
               {
+                virhetila: true,
                 virheilmoitus: "Tarkista käyttäjätunnus ja salasana!"
               }
             })
-          }
-          
-        
-         
+          }     
+                 
       }}>
-        <div><label for="tunnus">Käyttäjätunnus:</label></div>
+        <div><label htmlFor="tunnus">Käyttäjätunnus:</label></div>
         <div><input type="text" id="tunnus" name="tunnus" /></div>
 
-        <div><label for="salasana">Salasana:</label></div>
+        <div><label htmlFor="salasana">Salasana:</label></div>
         <div><input type="password" id="salasana" name="salasana" /></div>
 
         <div><input type="submit" 

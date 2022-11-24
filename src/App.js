@@ -5,6 +5,7 @@ import Tentti from './Tentti';
 import { useState, useReducer, useEffect } from "react"
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
 import Kirjautuminen from './Kirjautuminen';
+import SovellusValikko from './SovellusValikko';
 //import Kysymys from './Kysymys';
 //import Vastausvaihtoehto from './Vastausvaihtoehto';
 
@@ -16,7 +17,7 @@ function reducer(state, action) {
   switch (action.type) {
 
     case 'VASTAUS_VE_NIMI_MUUTTUI':
-      console.log("Reduceria kutsuttiin", action)
+      console.log("VASTAUS_VE_NIMI_MUUTTUI", action)
 
       let nimi = action.payload.nimi
       //appDataKopio = {...state}
@@ -38,7 +39,7 @@ function reducer(state, action) {
       return appDataKopio
 
     case 'VASTAUS_VE_POISTETTIIN':
-      console.log("Reduceria kutsuttiin", action)
+      console.log("VASTAUS_VE_POISTETTIIN", action)
 
       //console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
 
@@ -88,7 +89,7 @@ function reducer(state, action) {
       return appDataKopio
 
     case 'VASTAUS_VE_LISATTIIN':
-      console.log("Reduceria kutsuttiin", action)
+      console.log("VASTAUS_VE_LISATTIIN", action)
 
       //console.log("Reducer, TenttiIndex", action.payload.tenttiIndex)
 
@@ -117,17 +118,29 @@ function reducer(state, action) {
       return appDataKopio
 
     case "MUISTUTA_KAYTTAJAA":
-      console.log("Reduceria kutsuttiin", action)
+      console.log("MUISTUTA_KAYTTAJAA", action)
       return { ...state, muistutaKayttajaa: action.payload }
 
     case "ALUSTA_DATA":
-      console.log("Reduceria kutsuttiin", action)
+      console.log("ALUSTA_DATA", action)
       return { ...action.payload, tietoAlustettu: true }
 
     case "PAIVITA_TALLENNUSTILA":
-      console.log("Reduceria kutsuttiin", action)
+      console.log("PAIVITA_TALLENNUSTILA", action)
       return { ...state, tallennetaanko: action.payload }
+    case "SISAANKIRJATTU_KAYTTAJA":
+      console.log("SISAANKIRJATTU_KAYTTAJA", action)
+      return { ...state, virhetila: action.payload.virhetila, 
+        virheilmoitus: action.payload.virheilmoitus, kirjautunut: action.payload }
+    case "KIRJAUDU_SISAAN_VALITTU":
+      console.log("KIRJAUDU_SISAAN_VALITTU", action)
+      return { ...state, kirjauduValittu: action.payload.kirjauduValittu,
+      virhetila: action.payload.virhetila,
+      virheilmoitus: action.payload.virheilmoitus }
 
+    case "VIRHE_TAPAHTUI":
+      console.log("VIRHE_TAPAHTUI", action)
+      return { ...state, virhetila: action.payload.virhetila, virheilmoitus: action.payload.virheilmoitus }
     default:
       throw new Error("reduceriin tultiin jännällä actionilla");
   }
@@ -225,11 +238,15 @@ const TenttiSovellus = () => {
 
   //appData
   let appisData = {
-    tentit: [tentti1, tentti2],
+    //tentit: [tentti1, tentti2],
     tallennetaanko: false,
     tietoAlustettu: false,
     dataMuutettu: false,
-    muistutaKayttajaa: false
+    muistutaKayttajaa: false,
+    kirjautunut: false,
+    virhetila: false,
+    virheilmoitus: "",
+    kirjauduValittu: false
   }
 
   //reducer alustus
@@ -251,10 +268,16 @@ const TenttiSovellus = () => {
         //esim. toast kirjasto eri virheiden näyttöön käyttäjälle
         //JSON objekti pitää rakentaa ja pyörittää jossain, joko palvelimella tai reactin puolella
 
+        console.log("Tiedot haettu vakiosta")
+        dispatch({ type: "ALUSTA_DATA", payload: appisData } )
+
+        /* 
         const result = await axios('http://localhost:8080');
         console.log("get result:", result)
         //dispatch({ type: "ALUSTA_DATA", payload: result.data })
-        dispatch({ type: "ALUSTA_DATA", payload: result.data.data })
+        dispatch({ type: "ALUSTA_DATA", payload: result.data.data }) 
+        */
+
       } catch (error) {
         console.log("virhetilanne", error)
       }
@@ -339,7 +362,13 @@ const TenttiSovellus = () => {
         {appData.tietoAlustettu && appData.tentit.map((tentti, index) =>
           <Tentti tentti={tentti} tenttiIndex={index} dispatch={dispatch} />)}
         */}
-        <Kirjautuminen/>
+        {/* {!appData.kirjautunut && <Kirjautuminen virhetila={appData.virhetila} 
+        virheilmoitus={appData.virheilmoitus} dispatch={dispatch}/>} */}
+        <SovellusValikko kirjautunut={appData.kirjautunut} 
+        virhetila={appData.virhetila} 
+        virheilmoitus={appData.virheilmoitus}
+        kirjauduValittu={appData.kirjauduValittu}
+        dispatch={dispatch}/>
       </div>
 
       {/* <div>

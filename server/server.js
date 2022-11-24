@@ -210,7 +210,7 @@ app.post('/kirjautuminen', async (req, res, next) => {
     }
 
     if( !olemassaolevaKayttaja || !salasanaTasmays ) {
-      res.status(401).send(e) //tarkasta käyttäjätunnus ja salasana asiakkaalle
+      res.status(401).send() //tarkasta käyttäjätunnus ja salasana asiakkaalle
       return
     }
     let token
