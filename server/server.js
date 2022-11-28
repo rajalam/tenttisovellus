@@ -95,7 +95,9 @@ let salasana = "salasana"
 let kayttajanimi = "vilho@gmail.com"
 
 //käyttäjänimen + salasanan lisäys kantaan eli ns. käyttäjätunnuksen rekisteröinti
-//syöte: JSON {"kayttajanimi":"KAYTTAJANIMI", "salasana":"SALASANA"}, kayttajanimi, salasana oltava merkkijonoja
+//syöte: JSON {"kayttajanimi":"KAYTTAJANIMI", "salasana":"SALASANA", 
+//"reSalasana":"RESALASANA"}, kayttajanimi, salasana, reSalasana oltava merkkijonoja ja
+//salasana && reSalasana täytyy olla sama merkkijono
 //tulos: JSON [success, data]
 //HTTP vastauskoodit
 //201 data luonti OK
@@ -106,9 +108,10 @@ app.post('/rekisterointi', async (req, res, next) => {
   
   const kayttajanimi = String(req.body.kayttajanimi)  
   const salasana = String(req.body.salasana)  
+  const reSalasana = String(req.body.reSalasana)
   console.log ("/rekisteröinti POST")
 
-  if(!kayttajanimi || !salasana) { //syötesyntaksivirhe
+  if(!kayttajanimi || !salasana || !reSalasana || ( salasana !== reSalasana ) ) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return //next()??
