@@ -1,6 +1,8 @@
 import '../App.css';
+import { getServer } from './Apufunktiot';
 
 import axios from 'axios';
+
 
 const Rekisterointi = (props) => {
 
@@ -30,7 +32,7 @@ const Rekisterointi = (props) => {
                             rekisteroityminenAloitettu: true
                         }
                     })
-                    const result = await axios.post('https://localhost:4000/rekisterointi',
+                    const result = await axios.post(getServer() + '/rekisterointi',
                         {
                             kayttajanimi: event.target.tunnus.value,
                             salasana: event.target.salasana.value,

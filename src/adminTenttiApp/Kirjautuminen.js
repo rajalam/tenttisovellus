@@ -1,4 +1,5 @@
 import '../App.css';
+import { getServer } from './Apufunktiot'
 
 import axios from 'axios'
 
@@ -30,7 +31,7 @@ const Kirjautuminen = (props) => {
                     kirjautuminenAloitettu: true
                 }
             })
-            const result = await axios.post('https://localhost:4000/kirjautuminen',
+            const result = await axios.post(getServer() + '/kirjautuminen',
               {
                 kayttajanimi: event.target.tunnus.value,
                 salasana: event.target.salasana.value

@@ -285,7 +285,7 @@ app.get('/tentit', async (req, res) => {
   //const id = Number(req.params.id)  
   //const luokkaId = Number(req.params.kouluId)  
   
-  console.log ("nyt haetaan tentit")
+  console.log ("/tentit GET")
   //console.log ("tenttiNimi: ",req.body.nimi)
     try {
       result = await pool.query("select * from tentti", [])
