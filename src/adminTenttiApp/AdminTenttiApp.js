@@ -88,8 +88,18 @@ const AdminTenttiApp = () => {
                 appDataTilaKopio.tenttiListanHakuAloitettu = action.payload.tenttiListanHakuAloitettu
                 appDataTilaKopio.tenttiListaData = action.payload.tenttiListaData
                 appDataTilaKopio.tenttiListaDataPaivitettava = false
+                appDataTilaKopio.virhetila = false
+                appDataTilaKopio.virheilmoitus = false
                 return appDataTilaKopio
-                
+            
+            case "KIRJAA_ULOS_KAYTTAJA":
+                console.log("KIRJAA_ULOS_KAYTTAJA", action)
+                return {
+                    ...state, kirjautunut: false,
+                    virhetila: action.payload.virhetila,
+                    virheilmoitus: action.payload.virheilmoitus
+                }
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
@@ -158,6 +168,7 @@ const AdminTenttiApp = () => {
                     rekisteroidyValittu={appDataTila.rekisteroidyValittu}
                     dispatch={dispatch} />
             </div>
+            TODO tenttimenu + virheilmot
         </div>
     );
 }
