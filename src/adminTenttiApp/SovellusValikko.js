@@ -40,7 +40,19 @@ const SovellusValikko = (props) => {
             }
             {props.kirjautunut &&
                 <div>
-                    <button onClick={() => { }} >Tentit</button>
+                    <button onClick={() => {
+                        props.dispatch({
+                            type: "TENTIT_VALITTU",
+                            payload:
+                            {
+                                kirjauduValittu: false,
+                                virhetila: false,
+                                virheilmoitus: "",
+                                rekisteroidyValittu: false,
+                                tentitValittu: true
+                            }
+                        })
+                     }} >Tentit</button>
                     <button onClick={() => {
                         window.location.href = "https://www.youtube.com/watch?v=sAqnNWUD79Q"
                     }} >Tietoa sovelluksesta</button>

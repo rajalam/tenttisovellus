@@ -1,5 +1,6 @@
 import '../App.css';
 import SovellusValikko from './SovellusValikko';
+import TenttiValikko from './TenttiValikko';
 import { getServer, getTokendata } from './Apufunktiot';
 import { useState, useReducer, useEffect } from "react"
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
@@ -19,7 +20,8 @@ const alkuTila = {
     rekisteroidyValittu: false,
     tenttiListaDataPaivitettava: true,
     tenttiListanHakuAloitettu: false,
-    tenttiListaData: []
+    tenttiListaData: [],
+    tentitValittu: false
 }
 
 const AdminTenttiApp = () => {
@@ -50,14 +52,17 @@ const AdminTenttiApp = () => {
                 return {
                     ...state, virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus, kirjautunut: action.payload.kirjautunut,
-                    kirjautuminenAloitettu: action.payload.kirjautuminenAloitettu
+                    kirjautuminenAloitettu: action.payload.kirjautuminenAloitettu,
+                    tenttiListaDataPaivitettava: true,
+                    tentitValittu: false
                 }
             case "REKISTEROI_KAYTTAJA":
                 console.log("REKISTEROI_KAYTTAJA", action)
                 return {
                     ...state, virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
-                    rekisteroityminenAloitettu: action.payload.rekisteroityminenAloitettu
+                    rekisteroityminenAloitettu: action.payload.rekisteroityminenAloitettu,
+                    tenttiListaDataPaivitettava: true
                 }
             case "KIRJAUDU_SISAAN_VALITTU":
                 console.log("KIRJAUDU_SISAAN_VALITTU", action)
@@ -66,6 +71,7 @@ const AdminTenttiApp = () => {
                     virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
                     rekisteroidyValittu: action.payload.rekisteroidyValittu
+                    
                 }
 
             case "REKISTEROIDY_VALITTU":
@@ -75,7 +81,20 @@ const AdminTenttiApp = () => {
                     virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
                     kirjauduValittu: action.payload.kirjauduValittu
+
                 }
+
+            case "TENTIT_VALITTU":
+                console.log("TENTIT_VALITTU", action)
+                return {
+                    ...state, rekisteroidyValittu: action.payload.rekisteroidyValittu,
+                    virhetila: action.payload.virhetila,
+                    virheilmoitus: action.payload.virheilmoitus,
+                    kirjauduValittu: action.payload.kirjauduValittu,
+                    tentitValittu: action.payload.tentitValittu
+
+                }
+
 
             case "TENTTI_LISTA_HAKU_ALOITETTU":
                 console.log("TENTTI_LISTA_HAKU_ALOITETTU", action)
@@ -91,13 +110,14 @@ const AdminTenttiApp = () => {
                 appDataTilaKopio.virhetila = false
                 appDataTilaKopio.virheilmoitus = false
                 return appDataTilaKopio
-            
+
             case "KIRJAA_ULOS_KAYTTAJA":
                 console.log("KIRJAA_ULOS_KAYTTAJA", action)
                 return {
                     ...state, kirjautunut: false,
                     virhetila: action.payload.virhetila,
-                    virheilmoitus: action.payload.virheilmoitus
+                    virheilmoitus: action.payload.virheilmoitus,
+                    tenttiListaDataPaivitettava: true
                 }
 
             case "VIRHE_TAPAHTUI":
@@ -168,7 +188,15 @@ const AdminTenttiApp = () => {
                     rekisteroidyValittu={appDataTila.rekisteroidyValittu}
                     dispatch={dispatch} />
             </div>
-            TODO tenttimenu + virheilmot
+            {appDataTila.kirjautunut && appDataTila.virhetila &&
+                <p className='virhe'>appDataTila.virheilmoitus</p>}
+
+
+            {appDataTila.kirjautunut && !appDataTila.tenttiListaDataPaivitettava &&
+                appDataTila.tentitValittu &&
+                <TenttiValikko tenttiListaData={appDataTila.tenttiListaData} />}
+
+            TODO tenttimenu alkioineen + actioneineen + virheilmot
         </div>
     );
 }
