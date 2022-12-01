@@ -21,7 +21,9 @@ const alkuTila = {
     tenttiListaDataPaivitettava: true,
     tenttiListanHakuAloitettu: false,
     tenttiListaData: [],
-    tentitValittu: false
+    tentitValittu: false,
+    valittuTenttiIndex: -1,
+    palvelinYhteysAloitettu: false
 }
 
 const AdminTenttiApp = () => {
@@ -71,7 +73,7 @@ const AdminTenttiApp = () => {
                     virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
                     rekisteroidyValittu: action.payload.rekisteroidyValittu
-                    
+
                 }
 
             case "REKISTEROIDY_VALITTU":
@@ -91,7 +93,8 @@ const AdminTenttiApp = () => {
                     virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
                     kirjauduValittu: action.payload.kirjauduValittu,
-                    tentitValittu: action.payload.tentitValittu
+                    tentitValittu: action.payload.tentitValittu,
+                    valittuTenttiIndex: -1
 
                 }
 
@@ -120,12 +123,30 @@ const AdminTenttiApp = () => {
                     tenttiListaDataPaivitettava: true
                 }
 
+            case "TENTTIDATA_HAKU_ALOITETTU":
+                console.log("TENTTIDATA_HAKU_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "AKTIIVINEN_TENTTI_VALITTU":
+                console.log("AKTIIVINEN_TENTTI_VALITTU", action)
+
+                appDataTilaKopio.palvelinYhteysAloitettu = false
+                const tenttiId = action.payload.aktiivinenTenttiId
+
+                appDataTilaKopio.valittuTenttiIndex =
+                    appDataTilaKopio.tenttiListaData.findIndex((alkio) => alkio.id === tenttiId)
+                return appDataTilaKopio
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
                     ...state, virhetila: action.payload.virhetila, virheilmoitus: action.payload.virheilmoitus,
                     kirjautuminenAloitettu: action.payload.kirjautuminenAloitettu,
-                    tenttiListanHakuAloitettu: action.payload.tenttiListanHakuAloitettu
+                    tenttiListanHakuAloitettu: action.payload.tenttiListanHakuAloitettu,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu
                 }
             default:
                 throw new Error("Reduceriin tultiin tuntemattomalla actionilla: " + action.type);
@@ -189,12 +210,13 @@ const AdminTenttiApp = () => {
                     dispatch={dispatch} />
             </div>
             {appDataTila.kirjautunut && appDataTila.virhetila &&
-                <p className='virhe'>appDataTila.virheilmoitus</p>}
+                <p className='virhe'>{appDataTila.virheilmoitus}</p>}
 
 
             {appDataTila.kirjautunut && !appDataTila.tenttiListaDataPaivitettava &&
                 appDataTila.tentitValittu &&
-                <TenttiValikko tenttiListaData={appDataTila.tenttiListaData} />}
+                <TenttiValikko tenttiListaData={appDataTila.tenttiListaData}
+                    dispatch={dispatch} />}
 
             TODO tenttimenu alkioineen + actioneineen + virheilmot
         </div>
