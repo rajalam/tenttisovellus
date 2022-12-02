@@ -312,7 +312,11 @@ app.get('/tentit', async (req, res) => {
 
 //tenttiin liittyvien kysymysten ja kysymykseen liittyvien vastausvaihtoehtojen haku
 //syöte: URL tenttiId oltava kokonaisluku
-//tulos: JSON, TODO eri tasoisina muokattu tentti, kysymys, vastausve
+//tulos: JSON object, {"kysymykset": [kysymys1, "vastausvaihtoehdot":[vastausve1]} siten, että
+//kysymys alla puuhierarkiassa on siihen kuuluvat vastausvaihtoehdot, 
+//jokaisella kysymyksellä kentät "kysymys_id", "kysymys_nimi"
+//jokaisella vastausvaihtoehdolla kentät "kysymys_id", "vastausvaihtoehto_id", "vastausvaihtoehto_nimi",
+//"vastausvaihtoehto_oikein"
 //HTTP vastauskoodit
 //200 haku OK
 //422 syötesyntaksivirhe
@@ -342,54 +346,48 @@ app.get('/tentit/:tenttiId/kysymyksetjavastausvaihtoehdot', async (req, res) => 
       [id]
     )
 
-    if (kysymyksetResult.rows.length > 0) { //ainakin yksi liittyvä kysymys löytyi
+    //haetaan kysymyksiin liittyvät vastausvaihtoehdot
+    const vastausvaihtoehdotResult = await pool.query(
+      "SELECT  " +
+      "kysymys.id as kysymys_id, " +
+      " vastausvaihtoehto.id as vastausvaihtoehto_id, " +
+      "vastausvaihtoehto.nimi as vastausvaihtoehto_nimi, " +
+      "vastausvaihtoehto.on_oikea as vastausvaihtoehto_oikein " +
+      "FROM tentti " +
+      "JOIN kysymys " +
+      "ON kysymys.tentti_id = tentti.id and tentti.id = ($1) " +
+      "JOIN vastausvaihtoehto " +
+      "ON kysymys.id = vastausvaihtoehto.kysymys_id " +
+      "order by kysymys_id, vastausvaihtoehto_id", [id])
 
-      console.log("kResult:", kysymyksetResult.rows)
 
-      //let kysymysLista = []
-      //let kysymys = {}
-      kysymyksetResult.rows.map( (kysymys) => kysymysLista.push(kysymys))
+    //läpikäydään kysymykset ja vastausvaihtoehdot ja lisätään kysymykseen liittyvät
+    //vastausvaihtoehdot tietyn kysymyksen alle puu-hierarkiassa
+    //sisäkkäinen map, jolla matchataan kysymysten ja vastausvaihtoehtojen
+    //id:t ja lisätään vastausvaihtoehtolista matchaavan kysymyksen alle, 
+    //molemmat queryt voi ajaa ja tehdä mapeillä lisäysoperaatio avaimineen oikeanlaisen
+    //tentti-JSON rakenteen luomiseksi
+    kysymyksetResult.rows.map((kysymys) => {
 
-      tenttiData = {
-        kysymykset: kysymysLista }
-      console.log("klista", kysymysLista)
-      console.log("tentti", tenttiData)
+      kysymysLista.push(kysymys)
+      vastausvaihtoehtoLista = []
 
-      //haetaan kysymyksiin liittyvät vastausvaihtoehdot
-      const vastausvaihtoehdotResult = await pool.query(
-        "SELECT  " +
-        "kysymys.id as kysymys_id, " +
-        " vastausvaihtoehto.id as vastausvaihtoehto_id, " +
-        "vastausvaihtoehto.nimi as vastausvaihtoehto_nimi, " +
-        "vastausvaihtoehto.on_oikea as vastausvaihtoehto_oikein " +
-        "FROM tentti " +
-        "JOIN kysymys " +
-        "ON kysymys.tentti_id = tentti.id and tentti.id = ($1) " +
-        "JOIN vastausvaihtoehto " +
-        "ON kysymys.id = vastausvaihtoehto.kysymys_id " +
-        "order by kysymys_id, vastausvaihtoehto_id", [id])
-
-        if(vastausvaihtoehdotResult.rows.length > 0) { //ainakin yksi valitun tentin kysymykseen liittyvä vastausvaihtoehto löytyi
-          console.log("vveResult:", vastausvaihtoehdotResult.rows)
-
-          TODO sisäkkäinen map, jolla matchataan kysymysten ja vastausvaihtoehtojen
-          id:t ja lisätään vastausvaihtoehtolista matchaavan kysymyksen alle, 
-          molemmat queryt voi ajaa ja tehdä mapeillä lisäysoperaatio avaimineen oikeanlaisen
-          tentti-JSON rakenteen luomiseksi
-          /* vastausvaihtoehdotResult.rows.map( (vastausvaihtoehto) => {
-            if(vastausvaihtoehto.kysymys_id === ) {
-            vastausvaihtoehtoLista.push(vastausvaihtoehto))
-          }
-          } */
-            
-
+      vastausvaihtoehdotResult.rows.map((vaihtoehto) => {
+        if (vaihtoehto.kysymys_id === kysymys.kysymys_id) {
+          vastausvaihtoehtoLista.push(vaihtoehto)
         }
-    }
+      })
 
+      if (vastausvaihtoehtoLista.length > 0) {
+        kysymys.vastausvaihtoehdot = [...vastausvaihtoehtoLista]
+      }
+    })
 
-    //console.log("result:", result.rows)
+    tenttiData = { kysymykset: [kysymysLista] }
+    //console.log("tenttiData", tenttiData)
+
     res.setHeader("Content-type", "application/json")
-    res.status(200).send(result.rows)
+    res.status(200).send(tenttiData)
 
   } catch (error) {
     res.status(500).send(e)

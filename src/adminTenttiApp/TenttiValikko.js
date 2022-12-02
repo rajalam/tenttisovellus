@@ -30,6 +30,8 @@ const TenttiValikko = (props) => {
                                     getTokendata())
 
                             if (result.status === 200) { //haku ok
+                                
+                                console.log(result.data)
                                 props.dispatch({
                                     type: "AKTIIVINEN_TENTTI_VALITTU",
                                     payload:
