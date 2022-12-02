@@ -23,6 +23,7 @@ const alkuTila = {
     tenttiListaData: [],
     tentitValittu: false,
     valittuTenttiIndex: -1,
+    valittuTenttiId: -1,
     palvelinYhteysAloitettu: false
 }
 
@@ -134,7 +135,9 @@ const AdminTenttiApp = () => {
                 console.log("AKTIIVINEN_TENTTI_VALITTU", action)
 
                 appDataTilaKopio.palvelinYhteysAloitettu = false
+                
                 const tenttiId = action.payload.aktiivinenTenttiId
+                appDataTilaKopio.valittuTenttiId = tenttiId
 
                 appDataTilaKopio.valittuTenttiIndex =
                     appDataTilaKopio.tenttiListaData.findIndex((alkio) => alkio.id === tenttiId)
@@ -216,7 +219,8 @@ const AdminTenttiApp = () => {
             {appDataTila.kirjautunut && !appDataTila.tenttiListaDataPaivitettava &&
                 appDataTila.tentitValittu &&
                 <TenttiValikko tenttiListaData={appDataTila.tenttiListaData}
-                    dispatch={dispatch} />}
+                    dispatch={dispatch} 
+                    valittuTenttiId={appDataTila.valittuTenttiId} />}
 
             TODO tenttimenu alkioineen + actioneineen + virheilmot
         </div>

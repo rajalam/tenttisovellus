@@ -52,6 +52,13 @@
   margin-right: 1em;
 }
 
+.tenttiValikkoAlkioAktiivinen {
+  margin-right: 1em;
+  border: aqua;
+  border-width: 1;
+  color: blue;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

@@ -8,7 +8,8 @@ const TenttiValikko = (props) => {
         <div className='tenttiValikko'>
             {props.tenttiListaData.map((tentti) => {
                 return (<button key={tentti.id} id={tentti.id}
-                    className='tenttiValikkoAlkio' onClick={async (event) => {
+                    className={props.valittuTenttiId === tentti.id ? 'tenttiValikkoAlkioAktiivinen':'tenttiValikkoAlkio'} 
+                    onClick={async (event) => {
                         /* LISÄÄ onclick action tähän */
 
                         console.log("event.target.id", event.target.id)
