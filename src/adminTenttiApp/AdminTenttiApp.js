@@ -24,7 +24,9 @@ const alkuTila = {
     tentitValittu: false,
     valittuTenttiIndex: -1,
     valittuTenttiId: -1,
-    palvelinYhteysAloitettu: false
+    palvelinYhteysAloitettu: false,
+    valittuTenttiData: {}, //valitun tentin kysymykset+vastausvaihtoehdot
+    valittuTenttiDataPaivitettava: false
 }
 
 const AdminTenttiApp = () => {
@@ -57,7 +59,9 @@ const AdminTenttiApp = () => {
                     virheilmoitus: action.payload.virheilmoitus, kirjautunut: action.payload.kirjautunut,
                     kirjautuminenAloitettu: action.payload.kirjautuminenAloitettu,
                     tenttiListaDataPaivitettava: true,
-                    tentitValittu: false
+                    tentitValittu: false,
+                    valittuTenttiIndex: -1,
+                    valittuTenttiId: -1
                 }
             case "REKISTEROI_KAYTTAJA":
                 console.log("REKISTEROI_KAYTTAJA", action)
@@ -95,8 +99,8 @@ const AdminTenttiApp = () => {
                     virheilmoitus: action.payload.virheilmoitus,
                     kirjauduValittu: action.payload.kirjauduValittu,
                     tentitValittu: action.payload.tentitValittu,
-                    valittuTenttiIndex: -1
-
+                    valittuTenttiIndex: -1,
+                    valittuTenttiId: -1
                 }
 
 
@@ -121,7 +125,9 @@ const AdminTenttiApp = () => {
                     ...state, kirjautunut: false,
                     virhetila: action.payload.virhetila,
                     virheilmoitus: action.payload.virheilmoitus,
-                    tenttiListaDataPaivitettava: true
+                    tenttiListaDataPaivitettava: true,
+                    valittuTenttiIndex: -1,
+                    valittuTenttiId: -1
                 }
 
             case "TENTTIDATA_HAKU_ALOITETTU":
@@ -158,6 +164,7 @@ const AdminTenttiApp = () => {
     }
 
     useEffect(() => {
+        //kaikkien tenttien listan haku
         const haeTenttiLista = async () => {
 
             try {
@@ -200,6 +207,53 @@ const AdminTenttiApp = () => {
             haeTenttiLista()
         }
     }, [appDataTila.tenttiListaDataPaivitettava, appDataTila.kirjautunut])
+
+
+    useEffect(() => {
+        //valittuun tenttiin liittyen kysymysten+vastausvaihtoehtojen haku
+        const haeTentinData = async () => {
+
+            try {
+                dispatch({
+                    type: "TENTTI_DATA_HAKU_ALOITETTU",
+                    payload: {
+                        palvelinYhteysAloitettu: true
+                    }
+                })
+
+                const result = await axios.get(getServer() + 
+                '/tentit/' + appDataTila.valittuTenttiId + '/kysymyksetjavastausvaihtoehdot',
+                    getTokendata());
+                if (result.status === 200) { //haku ok
+                    dispatch({
+                        type: "TENTTI_DATA_HAKU_OK",
+                        payload: {
+                            palvelinYhteysAloitettu: false,
+                            valittuTenttiData: result.data
+                        }
+                    })
+                }
+                else { //joku muu virhe
+                    throw new Error("Virhetilanne!");
+                }
+            }
+            catch (error) {
+                console.log("error tulos: ", error)
+                dispatch({
+                    type: "VIRHE_TAPAHTUI",
+                    payload:
+                    {
+                        virhetila: true,
+                        virheilmoitus: "Valitun tenttidatan haku epäonnistui!",
+                        palvelinYhteysAloitettu: false
+                    }
+                })
+            }
+        }
+        if (appDataTila.valittuTenttiDataPaivitettava && appDataTila.kirjautunut) {
+            haeTentinData()
+        }
+    }, [appDataTila.valittuTenttiDataPaivitettava, appDataTila.kirjautunut])
 
     return (
         <div className='flex-container'>

@@ -1,3 +1,4 @@
+import { getAllByAltText } from '@testing-library/react';
 import axios from 'axios';
 import '../App.css';
 import { getServer, getTokendata } from './Apufunktiot';
@@ -12,7 +13,7 @@ const TenttiValikko = (props) => {
                     onClick={async (event) => {
                         /* LISÄÄ onclick action tähän */
 
-                        console.log("event.target.id", event.target.id)
+                        //console.log("event.target.id", event.target.id)
 
                         try {
 
@@ -32,6 +33,9 @@ const TenttiValikko = (props) => {
 
                             if (result.status === 200) { //haku ok
                                 
+                                TODO mitä tehdä kysymysjavastausvaihtoehto-listalla jotta pääsen eteenpäin
+                                katso omat kommentit src kansion alta, esim. se että missä kohtaa
+                                kysmykset ja vastaukset kannattaa jatkos hakea, useeffectis vai jossain muualla
                                 console.log(result.data)
                                 props.dispatch({
                                     type: "AKTIIVINEN_TENTTI_VALITTU",
