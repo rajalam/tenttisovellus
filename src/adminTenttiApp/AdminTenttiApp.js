@@ -112,7 +112,7 @@ const AdminTenttiApp = () => {
 
             case "TENTTI_LISTA_HAKU_OK":
                 console.log("TENTTI_LISTA_HAKU_OK", action)
-                appDataTilaKopio.tenttiListanHakuAloitettu = action.payload.tenttiListanHakuAloitettu
+                appDataTilaKopio.palvelinYhteysAloitettu = false
                 appDataTilaKopio.tenttiListaData = action.payload.tenttiListaData
                 appDataTilaKopio.tenttiListaDataPaivitettava = false
                 appDataTilaKopio.virhetila = false
@@ -137,6 +137,15 @@ const AdminTenttiApp = () => {
                     palvelinYhteysAloitettu: action.payload
                 }
 
+            case "TENTTIDATA_HAKU_OK":
+                console.log("TENTTIDATA_HAKU_OK", action)
+                appDataTilaKopio.palvelinYhteysAloitettu = false
+                appDataTilaKopio.valittuTenttiData = action.payload.valittuTenttiData
+                appDataTilaKopio.valittuTenttiDataPaivitettava = false
+                appDataTilaKopio.virhetila = false
+                appDataTilaKopio.virheilmoitus = false
+                return appDataTilaKopio
+
             case "AKTIIVINEN_TENTTI_VALITTU":
                 console.log("AKTIIVINEN_TENTTI_VALITTU", action)
 
@@ -147,6 +156,9 @@ const AdminTenttiApp = () => {
 
                 appDataTilaKopio.valittuTenttiIndex =
                     appDataTilaKopio.tenttiListaData.findIndex((alkio) => alkio.id === tenttiId)
+
+                appDataTilaKopio.valittuTenttiDataPaivitettava = action.payload.valittuTenttiDataPaivitettava
+
                 return appDataTilaKopio
 
             case "VIRHE_TAPAHTUI":
@@ -215,7 +227,7 @@ const AdminTenttiApp = () => {
 
             try {
                 dispatch({
-                    type: "TENTTI_DATA_HAKU_ALOITETTU",
+                    type: "TENTTIDATA_HAKU_ALOITETTU",
                     payload: {
                         palvelinYhteysAloitettu: true
                     }
@@ -226,7 +238,7 @@ const AdminTenttiApp = () => {
                     getTokendata());
                 if (result.status === 200) { //haku ok
                     dispatch({
-                        type: "TENTTI_DATA_HAKU_OK",
+                        type: "TENTTIDATA_HAKU_OK",
                         payload: {
                             palvelinYhteysAloitettu: false,
                             valittuTenttiData: result.data
