@@ -1,6 +1,7 @@
 import '../App.css';
 import SovellusValikko from './SovellusValikko';
 import TenttiValikko from './TenttiValikko';
+import TenttiMuokkaa from './TenttiMuokkaa';
 import { getServer, getTokendata } from './Apufunktiot';
 import { useState, useReducer, useEffect } from "react"
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
@@ -150,7 +151,7 @@ const AdminTenttiApp = () => {
                 console.log("AKTIIVINEN_TENTTI_VALITTU", action)
 
                 appDataTilaKopio.palvelinYhteysAloitettu = false
-                
+
                 const tenttiId = action.payload.aktiivinenTenttiId
                 appDataTilaKopio.valittuTenttiId = tenttiId
 
@@ -160,6 +161,21 @@ const AdminTenttiApp = () => {
                 appDataTilaKopio.valittuTenttiDataPaivitettava = action.payload.valittuTenttiDataPaivitettava
 
                 return appDataTilaKopio
+
+            case "KYSYMYS_POISTO_ALOITETTU":
+                console.log("KYSYMYS_POISTO_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "KYSYMYS_POISTO_OK":
+                console.log("KYSYMYS_POISTO_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
 
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
@@ -233,8 +249,8 @@ const AdminTenttiApp = () => {
                     }
                 })
 
-                const result = await axios.get(getServer() + 
-                '/tentit/' + appDataTila.valittuTenttiId + '/kysymyksetjavastausvaihtoehdot',
+                const result = await axios.get(getServer() +
+                    '/tentit/' + appDataTila.valittuTenttiId + '/kysymyksetjavastausvaihtoehdot',
                     getTokendata());
                 if (result.status === 200) { //haku ok
                     dispatch({
@@ -244,6 +260,8 @@ const AdminTenttiApp = () => {
                             valittuTenttiData: result.data
                         }
                     })
+                    //console.log("valittuTenttidata:", appDataTila.valittuTenttiData)
+                    //console.log("valittuTenttidata.kysymykset:", appDataTila.valittuTenttiData.kysymykset)
                 }
                 else { //joku muu virhe
                     throw new Error("Virhetilanne!");
@@ -285,8 +303,15 @@ const AdminTenttiApp = () => {
             {appDataTila.kirjautunut && !appDataTila.tenttiListaDataPaivitettava &&
                 appDataTila.tentitValittu &&
                 <TenttiValikko tenttiListaData={appDataTila.tenttiListaData}
-                    dispatch={dispatch} 
+                    dispatch={dispatch}
                     valittuTenttiId={appDataTila.valittuTenttiId} />}
+
+            {appDataTila.kirjautunut && !appDataTila.valittuTenttiDataPaivitettava &&
+                appDataTila.valittuTenttiId !== -1 &&
+                <TenttiMuokkaa tenttiData={appDataTila.valittuTenttiData}
+                    dispatch={dispatch}
+                />}
+            JATKA tästä tenttidatan tulostuskomponenttien toteutusta
 
             TODO tenttimenu alkioineen + actioneineen + virheilmot
         </div>

@@ -383,8 +383,9 @@ app.get('/tentit/:tenttiId/kysymyksetjavastausvaihtoehdot', async (req, res) => 
       }
     })
 
-    tenttiData = { kysymykset: [kysymysLista] }
+    tenttiData = { kysymykset: kysymysLista }
     //console.log("tenttiData", tenttiData)
+    //console.log("kysymysLista", kysymysLista)
 
     res.setHeader("Content-type", "application/json")
     res.status(200).send(tenttiData)
@@ -799,7 +800,7 @@ app.delete('/tentit/:id', async (req, res) => {
 })
 
 
-//kysymys poisto
+//kysymys poisto, poistaa myös liittyvät käyttäjän vastaukset sekä vastausvaihtoehdot
 //syöte: URL id oltava kokonaisluku
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
@@ -819,22 +820,30 @@ app.delete('/kysymykset/:id', async (req, res) => {
     return
   }
 
-  console.log("nyt poistetaan kysymys")
-  console.log("kysymysID: ", id)
+  console.log("/kysymykset/"+id, " DELETE")
+  //console.log("nyt poistetaan kysymys")
+  //console.log("kysymysID: ", id)
 
-  const client = pool.connect()
+  const client = await pool.connect()
   if (!client) { //db yhteys epäonnistui
+    //console.log("client epäonnistui")
     res.status(500).send()
     return
   }
+  let result = undefined
+
   try {
     await client.query('BEGIN')
 
     //käyttäjän vastausten poisto
-    result = await client.query("delete from kayttaja_vastaus where kayttaja_vastaus.vastausvaihtoehto_id in (select id from vastausvaihtoehto where kysymys_id = ($1) )", [id])
-    result = await client.query("delete from vastausvaihtoehdot where kysymys_id = ($1) ", [id])
+    await client.query("delete from kayttaja_vastaus where kayttaja_vastaus.vastausvaihtoehto_id in (select id from vastausvaihtoehto where kysymys_id = ($1) )", [id])
+    console.log("kayttaja_vastaus delete ok")
+    await client.query("delete from vastausvaihtoehto where kysymys_id = ($1) ", [id])
+    console.log("vastausvaihtoehto delete ok")
     result = await client.query("delete from kysymys where id = ($1)", [id])
+    console.log("kysymys delete ok")
     await client.query('COMMIT')
+    console.log("commit ok")
 
     if (result.rowCount > 0) { //poisto ok
       res.status(204).send(result.rows)
@@ -845,10 +854,12 @@ app.delete('/kysymykset/:id', async (req, res) => {
   }
   catch (e) {
     await client.query('ROLLBACK')
+    console.log("query epäonnistui")
     res.status(500).send(e)
   }
   finally {
-    await client.release()
+    client.release()
+    //(await client).release
   }
 })
 
