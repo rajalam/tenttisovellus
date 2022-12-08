@@ -253,6 +253,8 @@ app.post('/kirjautuminen', async (req, res, next) => {
 const vahvistaToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1]
   //tarvitaan Header  Authorization: 'bearer TOKEN'
+
+  console.log("token",token)
   if (!token) {
     res.status(200).json(
       {
@@ -647,7 +649,7 @@ app.post('/tentit', async (req, res) => {
 })
 
 //kysymys lisäys
-//syöte: URL tenttiId oltava kokonaisluku, JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
+//syöte: URL tenttiId oltava kokonaisluku
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
 //201 data luonti OK
@@ -658,15 +660,16 @@ app.post('/tentit', async (req, res) => {
 app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
 
   const id = Number(req.params.tenttiId)
-  const nimi = String(req.body.nimi)
+  const nimi = ""
 
-  if (!nimi || !id) { //syötesyntaksivirhe
+  if (!id) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
   }
 
-  console.log("nyt lisätään kysymys")
+  console.log("/tentit/"+id+"/kysymykset POST")
+  //console.log("nyt lisätään kysymys")
   //console.log ("tenttiNimi: ",req.body.nimi)
   try {
     result = await pool.query("INSERT INTO kysymys (nimi, tentti_id) VALUES ($1, $2) returning id", [nimi, id])

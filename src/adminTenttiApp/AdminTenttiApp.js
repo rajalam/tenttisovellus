@@ -192,6 +192,21 @@ const AdminTenttiApp = () => {
                     valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
                 }
 
+            case "KYSYMYS_LISAYS_ALOITETTU":
+                console.log("KYSYMYS_LISAYS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "KYSYMYS_LISAYS_OK":
+                console.log("KYSYMYS_LISAYS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
@@ -325,6 +340,7 @@ const AdminTenttiApp = () => {
                 appDataTila.valittuTenttiId !== -1 &&
                 <TenttiMuokkaa tenttiData={appDataTila.valittuTenttiData}
                     dispatch={dispatch}
+                    valittuTenttiId={appDataTila.valittuTenttiId}
                 />}
             JATKA tästä tenttidatan tulostuskomponenttien toteutusta
 
