@@ -8,8 +8,53 @@ const Kysymys = (props) => {
 
     return (
         <div className='kysymys' key={props.kysymys.kysymys_id}>
-            Kysymys: <input className='kysymysNimi' type="text" defaultValue={props.kysymys.kysymys_nimi}
-                onBlur="" />
+            Kysymys: <input className='muokkaaKysymys' type="text" defaultValue={props.kysymys.kysymys_nimi}
+                onBlur={async (event) => {
+
+                    try {
+                        props.dispatch({
+                            type: "KYSYMYS_MUOKKAUS_ALOITETTU",
+                            payload:
+                            {
+                                palvelinYhteysAloitettu: true
+                            }
+                        })
+
+                        //kysymyksen ominaisuuksien muokkaus, kun elementti fokus poistuu
+                        const result = await axios.put(getServer() +
+                            '/kysymykset/' + props.kysymys.kysymys_id,
+                            {
+                                nimi: event.target.value,
+                            },
+                            getTokendata());
+
+                        if (result.status === 201) { //muokkaus ok
+                            props.dispatch({
+                                type: "KYSYMYS_MUOKKAUS_OK",
+                                payload: {
+                                    palvelinYhteysAloitettu: false,
+                                    valittuTenttiDataPaivitettava: true
+                                }
+                            })
+
+                        }
+                        else { //joku muu virhe
+                            throw new Error("Virhetilanne!");
+                        }
+
+                    } catch (error) {
+                        console.log("error tulos: ", error)
+                        props.dispatch({
+                        type: "VIRHE_TAPAHTUI",
+                        payload:
+                        {
+                            virhetila: true,
+                            virheilmoitus: "Valitun kysymyksen muokkaus epäonnistui!",
+                            palvelinYhteysAloitettu: false
+                        }
+                    })
+                    }
+                }} />
             <input className='poistaKysymys' type="button" value="-" onClick={async (event) => {
 
                 try {
@@ -20,7 +65,8 @@ const Kysymys = (props) => {
                             palvelinYhteysAloitettu: true
                         }
                     })
-                    
+
+                    //kysymyksen, siihen liittyvien vastausvaihtoehtojen ja käyttäjän vastausten poisto
                     const result = await axios.delete(getServer() +
                         '/kysymykset/' + props.kysymys.kysymys_id,
                         getTokendata());
@@ -31,10 +77,10 @@ const Kysymys = (props) => {
                             payload: {
                                 palvelinYhteysAloitettu: false,
                                 valittuTenttiDataPaivitettava: true
-                                
+
                             }
                         })
-                        
+
                     }
                     else { //joku muu virhe
                         throw new Error("Virhetilanne!");
@@ -42,16 +88,16 @@ const Kysymys = (props) => {
                 } catch (error) {
                     console.log("error tulos: ", error)
                     props.dispatch({
-                    type: "VIRHE_TAPAHTUI",
-                    payload:
-                    {
-                        virhetila: true,
-                        virheilmoitus: "Valitun kysymyksen poisto epäonnistui!",
-                        palvelinYhteysAloitettu: false
-                    }
-                })
+                        type: "VIRHE_TAPAHTUI",
+                        payload:
+                        {
+                            virhetila: true,
+                            virheilmoitus: "Valitun kysymyksen poisto epäonnistui!",
+                            palvelinYhteysAloitettu: false
+                        }
+                    })
                 }
-                
+
             }
             } />
 

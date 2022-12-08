@@ -177,6 +177,21 @@ const AdminTenttiApp = () => {
                     valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
                 }
 
+            case "KYSYMYS_MUOKKAUS_ALOITETTU":
+                console.log("KYSYMYS_MUOKKAUS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "KYSYMYS_MUOKKAUS_OK":
+                console.log("KYSYMYS_MUOKKAUS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {

@@ -837,13 +837,13 @@ app.delete('/kysymykset/:id', async (req, res) => {
 
     //käyttäjän vastausten poisto
     await client.query("delete from kayttaja_vastaus where kayttaja_vastaus.vastausvaihtoehto_id in (select id from vastausvaihtoehto where kysymys_id = ($1) )", [id])
-    console.log("kayttaja_vastaus delete ok")
+    //console.log("kayttaja_vastaus delete ok")
     await client.query("delete from vastausvaihtoehto where kysymys_id = ($1) ", [id])
-    console.log("vastausvaihtoehto delete ok")
+    //console.log("vastausvaihtoehto delete ok")
     result = await client.query("delete from kysymys where id = ($1)", [id])
-    console.log("kysymys delete ok")
+    //console.log("kysymys delete ok")
     await client.query('COMMIT')
-    console.log("commit ok")
+    //console.log("commit ok")
 
     if (result.rowCount > 0) { //poisto ok
       res.status(204).send(result.rows)
@@ -854,7 +854,7 @@ app.delete('/kysymykset/:id', async (req, res) => {
   }
   catch (e) {
     await client.query('ROLLBACK')
-    console.log("query epäonnistui")
+    //console.log("query epäonnistui")
     res.status(500).send(e)
   }
   finally {
@@ -936,6 +936,7 @@ app.put('/tentit/:id', async (req, res) => {
     return
   }
 
+  console.log("/tentit/"+id+" PUT")
   console.log("nyt muokataan tentti ominaisuuksia")
   console.log("tenttiID: ", id)
   try {
@@ -974,12 +975,13 @@ app.put('/kysymykset/:id', async (req, res) => {
     return
   }
 
+  console.log("/kysymykset/"+id+" PUT")
   console.log("nyt muokataan kysymys nimeä")
   console.log("kysymysID: ", id)
   try {
     result = await pool.query("update kysymys set nimi = ($1) where id = ($2) returning *", [nimi, id])
 
-    if (result.rowCount > 0) { //lisäys ok
+    if (result.rowCount > 0) { //muokkaus ok
       res.status(201).send(result.rows)
     }
     else { //käsitelty, uutta dataa ei luotu
