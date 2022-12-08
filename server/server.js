@@ -959,6 +959,7 @@ app.put('/tentit/:id', async (req, res) => {
 //syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"} NIMI oltava merkkijono
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
+//201 muokkaus ok
 //204 käsitelty, ei uutta sisältöä
 //404 resurssia ei löydy
 //422 syötesyntaksivirhe
@@ -976,8 +977,8 @@ app.put('/kysymykset/:id', async (req, res) => {
   }
 
   console.log("/kysymykset/"+id+" PUT")
-  console.log("nyt muokataan kysymys nimeä")
-  console.log("kysymysID: ", id)
+  //console.log("nyt muokataan kysymys nimeä")
+  //console.log("kysymysID: ", id)
   try {
     result = await pool.query("update kysymys set nimi = ($1) where id = ($2) returning *", [nimi, id])
 
