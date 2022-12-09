@@ -254,7 +254,7 @@ const vahvistaToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1]
   //tarvitaan Header  Authorization: 'bearer TOKEN'
 
-  console.log("token",token)
+  //console.log("token",token)
   if (!token) {
     res.status(200).json(
       {

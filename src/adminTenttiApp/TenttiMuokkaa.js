@@ -2,8 +2,8 @@ import '../App.css';
 import Kysymys from './Kysymys';
 import { getServer, getTokendata } from './Apufunktiot';
 import axios from 'axios';
-import { emit } from 'nodemon';
-import { editableInputTypes } from '@testing-library/user-event/dist/utils';
+//import { emit } from 'nodemon';
+//import { editableInputTypes } from '@testing-library/user-event/dist/utils';
 
 
 const TenttiMuokkaa = (props) => {
@@ -33,15 +33,20 @@ const TenttiMuokkaa = (props) => {
                     //console.log(getTokendata())
 
                     //kysymyksen lisäys
+                    
                     const result = await axios.post(getServer() +
                         '/tentit/' + props.valittuTenttiId.toString() +"/kysymykset",
+                        {},
                         getTokendata());
+                    
 
                     //TODO ed. axios kutsulla token näyttää undefined vahvistaTokenissa, vaikka muilla axios kutsuilla
                     //toimii ok, miksi?, tosin muita post komentoja en ole voinut testata, enkä postmanillakaan,
                     //ei toiminut postmanillakaan->postmanilla sain toimiin lopulta ok tokenin välityksen,
                     //ja siten myös uuden kysymyksen luonnin,
                     //mutta uutena vikana node_modules herjaa tulee kuten katrilla ke aamuna
+                    //->RATKAISU OK eli kommentoitu jotain autom. generoituja importteja pois ja lisätty tyhjä
+                    //runko axios.post pyyntöön, koska se oli väärällä syntaksilla tehty
 
                     if (result.status === 201) { //lisäys ok
                         props.dispatch({
