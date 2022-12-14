@@ -8,7 +8,7 @@ const SovellusValikko = (props) => {
         <div>
             {!props.kirjautunut &&
                 <div>
-                    <button onClick={() => {
+                    <button data-testid="kirjauduSisaan" onClick={() => {
                         props.dispatch({
                             type: "KIRJAUDU_SISAAN_VALITTU",
                             payload:
