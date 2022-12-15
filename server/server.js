@@ -380,9 +380,9 @@ app.get('/tentit/:tenttiId/kysymyksetjavastausvaihtoehdot', async (req, res) => 
         }
       })
 
-      if (vastausvaihtoehtoLista.length > 0) {
-        kysymys.vastausvaihtoehdot = [...vastausvaihtoehtoLista]
-      }
+      //lisätään vastausvaihtoehdot-lista kysymykseen, vaikka se olisi tyhjä lista
+      kysymys.vastausvaihtoehdot = [...vastausvaihtoehtoLista]
+      
     })
 
     tenttiData = { kysymykset: kysymysLista }
@@ -688,7 +688,7 @@ app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
 })
 
 //vastausvaihtoehto lisäys
-//syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
+//syöte: URL id oltava kokonaisluku
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
 //201 data luonti OK
@@ -699,15 +699,17 @@ app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
 app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
 
   const id = Number(req.params.id)
-  const nimi = String(req.body.nimi)
+  const nimi = ""
 
-  if (!nimi || !id) { //syötesyntaksivirhe
+  //console.log("nimi:", nimi)
+  if (!id) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
   }
 
-  console.log("nyt lisätään vastausvaihtoehto")
+  console.log("/kysymykset/"+id + "/vastausvaihtoehdot/"+ " POST")
+  //console.log("nyt lisätään vastausvaihtoehto")
   //console.log ("tenttiNimi: ",req.body.nimi)
   try {
     result = await pool.query("INSERT INTO vastausvaihtoehto (nimi, on_oikea, kysymys_id) VALUES ($1, false, $2) returning id", [nimi, id])
@@ -886,10 +888,11 @@ app.delete('/vastausvaihtoehdot/:id', async (req, res) => {
     return
   }
 
-  console.log("nyt poistetaan vastausvaihtoehto")
-  console.log("vastausvaihtoehtoID: ", id)
+  console.log("/vastausvaihtoehdot/"+ id + " DELETE")
+  //console.log("nyt poistetaan vastausvaihtoehto")
+  //console.log("vastausvaihtoehtoID: ", id)
 
-  const client = pool.connect()
+  const client = await pool.connect()
   if (!client) { //db yhteys epäonnistui
     res.status(500).send()
     return
@@ -913,7 +916,7 @@ app.delete('/vastausvaihtoehdot/:id', async (req, res) => {
     res.status(500).send(e)
   }
   finally {
-    await client.release()
+    client.release()
   }
 
 })
@@ -1002,6 +1005,7 @@ app.put('/kysymykset/:id', async (req, res) => {
 //syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI","on_oikea":BOOLEAN} NIMI oltava merkkijono, BOOLEAN oltava boolean arvo
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
+//201 muutos ok
 //204 käsitelty, ei uutta sisältöä
 //404 resurssia ei löydy
 //422 syötesyntaksivirhe
@@ -1019,13 +1023,14 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
     return
   }
 
-  console.log("nyt muokataan vastausvaihtoehdon ominaisuuksia")
-  console.log("vastausvaihtoehtoID: ", id)
+  console.log("/vastausvaihtoehdot/"+ id + " PUT")
+  //console.log("nyt muokataan vastausvaihtoehdon ominaisuuksia")
+  //console.log("vastausvaihtoehtoID: ", id)
   try {
     result = await pool.query("update vastausvaihtoehto set nimi = ($1), on_oikea = ($2) where id = ($3) returning *",
       [nimi, on_oikea, id])
 
-    if (result.rowCount > 0) { //lisäys ok
+    if (result.rowCount > 0) { //muutos ok
       res.status(201).send(result.rows)
     }
     else { //käsitelty, uutta dataa ei luotu

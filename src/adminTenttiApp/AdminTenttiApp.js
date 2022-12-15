@@ -207,6 +207,51 @@ const AdminTenttiApp = () => {
                     valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
                 }
 
+            case "VASTAUS_VE_NIMI_MUOKKAUS_ALOITETTU":
+                console.log("VASTAUS_VE_NIMI_MUOKKAUS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "VASTAUS_VE_NIMI_MUOKKAUS_OK":
+                console.log("VASTAUS_VE_NIMI_MUOKKAUS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
+            case "VASTAUS_VE_POISTO_ALOITETTU":
+                console.log("VASTAUS_VE_POISTO_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "VASTAUS_VE_POISTO_OK":
+                console.log("VASTAUS_VE_POISTO_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
+            case "VASTAUS_VE_LISAYS_ALOITETTU":
+                console.log("VASTAUS_VE_LISAYS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload
+                }
+
+            case "VASTAUS_VE_LISAYS_OK":
+                console.log("VASTAUS_VE_LISAYS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {

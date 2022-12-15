@@ -1,5 +1,5 @@
 import '../App.css';
-
+import Vastausvaihtoehto from './Vastausvaihtoehto';
 import { getServer, getTokendata } from './Apufunktiot';
 
 import axios from 'axios';
@@ -45,14 +45,14 @@ const Kysymys = (props) => {
                     } catch (error) {
                         console.log("error tulos: ", error)
                         props.dispatch({
-                        type: "VIRHE_TAPAHTUI",
-                        payload:
-                        {
-                            virhetila: true,
-                            virheilmoitus: "Valitun kysymyksen muokkaus epäonnistui!",
-                            palvelinYhteysAloitettu: false
-                        }
-                    })
+                            type: "VIRHE_TAPAHTUI",
+                            payload:
+                            {
+                                virhetila: true,
+                                virheilmoitus: "Valitun kysymyksen muokkaus epäonnistui!",
+                                palvelinYhteysAloitettu: false
+                            }
+                        })
                     }
                 }} />
             <input className='poistaKysymys' type="button" value="-" onClick={async (event) => {
@@ -102,28 +102,56 @@ const Kysymys = (props) => {
             } />
 
             <div className='vastausvaihtoehtoLista'>
-                {/*  {props.kysymys.vastausvaihtoehdot.map((vastausvaihtoehto, index) =>
+                {props.kysymys.vastausvaihtoehdot.map((vastausvaihtoehto) =>
                     <Vastausvaihtoehto dispatch={props.dispatch}
-                        vastausvaihtoehtoIndex={index}
-                        kysymysIndex={props.kysymysIndex}
-                        vastausvaihtoehto={vastausvaihtoehto}
-                        tenttiIndex={props.tenttiIndex} />)} */}
+                        vastausvaihtoehto={vastausvaihtoehto} />)}
             </div>
             <div>
-                {/*  <input type="button" onClick={(event) => {
-                    props.dispatch({
-                        type: "VASTAUS_VE_LISATTIIN",
-                        payload:
-                        {
-                            nimi: event.target.value,
-                            vastausvaihtoehtoIndex: props.vastausvaihtoehtoIndex,
-                            kysymysIndex: props.kysymysIndex,
-                            tenttiIndex: props.tenttiIndex
+                <input type="button" onClick={async (event) => {
 
+                    try {
+                        props.dispatch({
+                            type: "VASTAUS_VE_LISAYS_ALOITETTU",
+                            payload:
+                            {
+                                palvelinYhteysAloitettu: true
+                            }
+                        })
+
+                        //vastausvaihtoehdon lisäys
+                        const result = await axios.post(getServer() +
+                            '/kysymykset/' + props.kysymys.kysymys_id + "/vastausvaihtoehdot",
+                            {},
+                            getTokendata());
+
+                        if (result.status === 201) { //lisäys ok
+                            props.dispatch({
+                                type: "VASTAUS_VE_LISAYS_OK",
+                                payload: {
+                                    palvelinYhteysAloitettu: false,
+                                    valittuTenttiDataPaivitettava: true
+                                }
+                            })
                         }
-                    })
+                        else { //joku muu virhe
+                            throw new Error("Virhetilanne!");
+                        }
+
+                    } catch (error) {
+                        console.log("error tulos: ", error)
+                        props.dispatch({
+                            type: "VIRHE_TAPAHTUI",
+                            payload:
+                            {
+                                virhetila: true,
+                                virheilmoitus: "Uuden vastausvaihtoehdon lisäys epäonnistui!",
+                                palvelinYhteysAloitettu: false
+                            }
+                        })
+                    }
+
                 }}
-                    value="+" /> */}
+                    value="+" />
             </div>
 
         </div>
