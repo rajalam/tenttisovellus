@@ -12,7 +12,7 @@ const Vastausvaihtoehto = (props) => {
                 Vastausvaihtoehto:
 
                 <input className='muokkaaVastausvaihtoehtoOikein' type="checkbox"
-                    defaultValue={props.vastausvaihtoehto.vastausvaihtoehto_oikein} />
+                    defaultChecked={props.vastausvaihtoehto.vastausvaihtoehto_oikein} />
 
                 <input className="muokkaaVastausvaihtoehtoNimi" type="text" onBlur={async (event) => {
                     /* tähän kohtaan voi tehdä axios pyynnöt serverille, 
