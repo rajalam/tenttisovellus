@@ -252,6 +252,23 @@ const AdminTenttiApp = () => {
                     valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
                 }
 
+            case "VASTAUS_VE_ON_OIKEIN_MUOKKAUS_ALOITETTU":
+                console.log("VASTAUS_VE_ON_OIKEIN_MUOKKAUS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
+            case "VASTAUS_VE_ON_OIKEIN_MUOKKAUS_OK":
+                console.log("VASTAUS_VE_ON_OIKEIN_MUOKKAUS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
+                }
+
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
