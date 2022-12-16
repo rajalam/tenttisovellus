@@ -31,8 +31,16 @@ const TenttiValikko = (props) => {
                     }>
                     {tentti.nimi}
                 </button>
+                
                 )
+                
             })}
+
+                <button className="lisaaTentti" onClick={ async (event) => {
+
+                }}>
+                    + JATKA TÄSTÄ
+                </button>
         </div>
     );
 }

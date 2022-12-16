@@ -1019,7 +1019,15 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
   const nimi = String(req.body.nimi)
   const on_oikea = Boolean(req.body.on_oikea)
 
-  if (!id || !nimi || on_oikea === undefined) { //syötesyntaksivirhe
+  //console.log("id:",id, "nimi:",nimi, "on_oikea:", on_oikea)
+
+  //let testNimi = ""
+  //testNimi = testNimi.toString()
+
+  //console.log("testNimi", testNimi)
+  //console.log("testNimi", testNimi instanceof String)
+
+  if (!id || on_oikea === undefined) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
