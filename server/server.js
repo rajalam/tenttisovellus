@@ -382,7 +382,7 @@ app.get('/tentit/:tenttiId/kysymyksetjavastausvaihtoehdot', async (req, res) => 
 
       //lisätään vastausvaihtoehdot-lista kysymykseen, vaikka se olisi tyhjä lista
       kysymys.vastausvaihtoehdot = [...vastausvaihtoehtoLista]
-      
+
     })
 
     tenttiData = { kysymykset: kysymysLista }
@@ -612,25 +612,23 @@ app.use(vahvistaYllapitajaOikeudet)
 
 //TODO TEE UUDESTAAN seuraava, jos/kun tentti poisto toteutus vaan passivoinnilla
 //tentin lisäys
-//syöte: JSON {"nimi":"NIMI"}, NIMI oltava merkkijono
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
 //201 data luonti OK
 //204 käsitelty, ei sisältöä
-//422 syötesyntaksivirhe
 //500 palvelinvirhe
 //TODO tarkkailu että vain admin käyttäjä voi suorittaa tämän toiminnon
 app.post('/tentit', async (req, res) => {
 
-  const nimi = String(req.body.nimi)
+  const nimi = ""
 
-  if (!nimi) { //syötesyntaksivirhe
+  /* if (!nimi) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
-  }
+  } */
 
-  console.log("nyt lisätään tenttiä")
+  console.log("/tentit/ POST")
   //console.log ("tenttiNimi: ",req.body.nimi)
   try {
     result = await pool.query("INSERT INTO tentti (nimi) VALUES ($1) returning id", [nimi])
@@ -668,7 +666,7 @@ app.post('/tentit/:tenttiId/kysymykset', async (req, res) => {
     return
   }
 
-  console.log("/tentit/"+id+"/kysymykset POST")
+  console.log("/tentit/" + id + "/kysymykset POST")
   //console.log("nyt lisätään kysymys")
   //console.log ("tenttiNimi: ",req.body.nimi)
   try {
@@ -708,7 +706,7 @@ app.post('/kysymykset/:id/vastausvaihtoehdot', async (req, res) => {
     return
   }
 
-  console.log("/kysymykset/"+id + "/vastausvaihtoehdot/"+ " POST")
+  console.log("/kysymykset/" + id + "/vastausvaihtoehdot/" + " POST")
   //console.log("nyt lisätään vastausvaihtoehto")
   //console.log ("tenttiNimi: ",req.body.nimi)
   try {
@@ -825,7 +823,7 @@ app.delete('/kysymykset/:id', async (req, res) => {
     return
   }
 
-  console.log("/kysymykset/"+id, " DELETE")
+  console.log("/kysymykset/" + id, " DELETE")
   //console.log("nyt poistetaan kysymys")
   //console.log("kysymysID: ", id)
 
@@ -888,7 +886,7 @@ app.delete('/vastausvaihtoehdot/:id', async (req, res) => {
     return
   }
 
-  console.log("/vastausvaihtoehdot/"+ id + " DELETE")
+  console.log("/vastausvaihtoehdot/" + id + " DELETE")
   //console.log("nyt poistetaan vastausvaihtoehto")
   //console.log("vastausvaihtoehtoID: ", id)
 
@@ -937,13 +935,13 @@ app.put('/tentit/:id', async (req, res) => {
   const id = Number(req.params.id)
   const nimi = String(req.body.nimi)
 
-  if (!id || !nimi) { //syötesyntaksivirhe
+  if (!id ) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
   }
 
-  console.log("/tentit/"+id+" PUT")
+  console.log("/tentit/" + id + " PUT")
   //console.log("nyt muokataan tentti ominaisuuksia")
   //console.log("tenttiID: ", id)
 
@@ -978,13 +976,13 @@ app.put('/kysymykset/:id', async (req, res) => {
   const id = Number(req.params.id)
   const nimi = String(req.body.nimi)
 
-  if (!id || !nimi) { //syötesyntaksivirhe
+  if (!id ) { //syötesyntaksivirhe
     console.log("syötesyntaksivirhe")
     res.status(422).send()
     return
   }
 
-  console.log("/kysymykset/"+id+" PUT")
+  console.log("/kysymykset/" + id + " PUT")
   //console.log("nyt muokataan kysymys nimeä")
   //console.log("kysymysID: ", id)
   try {
@@ -1033,7 +1031,7 @@ app.put('/vastausvaihtoehdot/:id', async (req, res) => {
     return
   }
 
-  console.log("/vastausvaihtoehdot/"+ id + " PUT")
+  console.log("/vastausvaihtoehdot/" + id + " PUT")
   //console.log("nyt muokataan vastausvaihtoehdon ominaisuuksia")
   //console.log("vastausvaihtoehtoID: ", id)
   try {

@@ -1,7 +1,7 @@
 //import { getAllByAltText } from '@testing-library/react';
-//import axios from 'axios';
 import '../App.css';
-//import { getServer, getTokendata } from './Apufunktiot';
+import axios from 'axios';
+import { getServer, getTokendata } from './Apufunktiot';
 
 const TenttiValikko = (props) => {
 
@@ -13,7 +13,7 @@ const TenttiValikko = (props) => {
                     onClick={(event) => {
                         /* LISÄÄ onclick action tähän */
                         //console.log("event.target.id", event.target.id)
-                                                           
+
                         /* TODO mitä tehdä kysymysjavastausvaihtoehto - listalla jotta pääsen eteenpäin
                         katso omat kommentit src kansion alta, esim.se että missä kohtaa
                         kysmykset ja vastaukset kannattaa jatkos hakea, useeffectis vai jossain muualla */
@@ -31,16 +31,73 @@ const TenttiValikko = (props) => {
                     }>
                     {tentti.nimi}
                 </button>
-                
+
                 )
-                
+
             })}
 
-                <button className="lisaaTentti" onClick={ async (event) => {
+            <button className="lisaaTentti" onClick={async (event) => {
 
-                }}>
-                    + JATKA TÄSTÄ
-                </button>
+                let result = undefined;
+
+                try {
+                    props.dispatch({
+                        type: "LISAA_TENTTI_ALOITETTU",
+                        payload:
+                        {
+                            palvelinYhteysAloitettu: true
+                        }
+                    })
+
+                    //uusi tentti lisäys
+                    result = await axios.post(getServer() +
+                        '/tentit/',
+                        {},
+                        getTokendata());
+
+                    if (result.status === 201) { //lisäys ok
+
+                        props.dispatch({
+                            type: "TENTTILISTA_DATA_PAIVITETTAVA",
+                            payload:
+                            {
+                                tenttiListaDataPaivitettava: true
+                            }
+                        })
+
+                        //finally
+                        props.dispatch({
+                            type: "LISAA_TENTTI_OK",
+                            payload: {
+                                palvelinYhteysAloitettu: false
+                                //aktiivinenTenttiId: result.data[0].id,
+                                //valittuTenttiDataPaivitettava: true
+                            }
+                        })
+
+                        //console.log("result:", result.data[0].id)
+
+                    }
+                    else { //joku muu virhe
+                        throw new Error("Virhetilanne!");
+                    }
+
+                } catch (error) {
+                    console.log("error tulos: ", error)
+                    props.dispatch({
+                        type: "VIRHE_TAPAHTUI",
+                        payload:
+                        {
+                            virhetila: true,
+                            virheilmoitus: "Tentin lisäys epäonnistui!",
+                            palvelinYhteysAloitettu: false
+                        }
+                    })
+                }
+
+            }}>
+                +
+            </button>
         </div>
     );
 }

@@ -283,6 +283,38 @@ const AdminTenttiApp = () => {
                     tenttiListaDataPaivitettava: action.payload.tenttiListaDataPaivitettava
                 }
 
+            case "LISAA_TENTTI_ALOITETTU":
+                console.log("LISAA_TENTTI_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu
+                }
+
+            case "LISAA_TENTTI_OK":
+                console.log("LISAA_TENTTI_OK", action)
+
+                appDataTilaKopio.palvelinYhteysAloitettu = false
+                //appDataTilaKopio.tenttiListaDataPaivitettava = true
+
+                const tenttiIdKopio = -1
+                appDataTilaKopio.valittuTenttiId = tenttiIdKopio
+
+                appDataTilaKopio.valittuTenttiIndex =
+                    appDataTilaKopio.tenttiListaData.findIndex((alkio) => alkio.id === tenttiIdKopio)
+
+                //console.log("appdatatilakopio.valittuTenttiIndex", appDataTilaKopio.valittuTenttiIndex)
+
+                appDataTilaKopio.valittuTenttiDataPaivitettava = false
+
+                return appDataTilaKopio
+
+            case "TENTTILISTA_DATA_PAIVITETTAVA":
+                console.log("TENTTILISTA_DATA_PAIVITETTAVA", action)
+                return {
+                    ...state,
+                    tenttiListaDataPaivitettava: action.payload.tenttiListaDataPaivitettava
+                }
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
@@ -412,7 +444,7 @@ const AdminTenttiApp = () => {
                     valittuTenttiId={appDataTila.valittuTenttiId} />}
 
             {appDataTila.kirjautunut && !appDataTila.valittuTenttiDataPaivitettava &&
-                appDataTila.valittuTenttiId !== -1 &&
+                appDataTila.valittuTenttiIndex !== -1 &&
                 <TenttiMuokkaa tenttiData={appDataTila.valittuTenttiData}
                     dispatch={dispatch}
                     valittuTenttiId={appDataTila.valittuTenttiId}
