@@ -2,14 +2,62 @@ import '../App.css';
 import Kysymys from './Kysymys';
 import { getServer, getTokendata } from './Apufunktiot';
 import axios from 'axios';
-//import { emit } from 'nodemon';
-//import { editableInputTypes } from '@testing-library/user-event/dist/utils';
+
 
 
 const TenttiMuokkaa = (props) => {
 
     return (
-        <div className='tenttiMuokkaa'>
+        <div className="tentti">
+
+            Tentti: <input className="muokkaaTenttiNimi" type="text"
+                defaultValue={props.valittuTenttiNimi} onBlur={async (event) => {
+
+                    try {
+                        props.dispatch({
+                            type: "TENTTI_NIMI_MUOKKAUS_ALOITETTU",
+                            payload:
+                            {
+                                palvelinYhteysAloitettu: true
+                            }
+                        })
+
+                        //tentti nimen muokkaus
+                        const result = await axios.put(getServer() +
+                            '/tentit/' + props.valittuTenttiId,
+                            {
+                                nimi: event.target.value
+                            },
+                            getTokendata());
+
+                        if (result.status === 201) { //muokkaus ok
+                            props.dispatch({
+                                type: "TENTTI_NIMI_MUOKKAUS_OK",
+                                payload: {
+                                    palvelinYhteysAloitettu: false,
+                                    tenttiListaDataPaivitettava: true
+                                }
+                            })
+
+                        }
+                        else { //joku muu virhe
+                            throw new Error("Virhetilanne!");
+                        }
+
+                    } catch (error) {
+                        console.log("error tulos: ", error)
+                        props.dispatch({
+                            type: "VIRHE_TAPAHTUI",
+                            payload:
+                            {
+                                virhetila: true,
+                                virheilmoitus: "Tentin ominaisuuksien muokkaus epäonnistui!",
+                                palvelinYhteysAloitettu: false
+                            }
+                        })
+                    }
+                }
+                } />
 
             <div className='kysymysLista'>{props.tenttiData.kysymykset.map((kysymys) =>
 
@@ -33,12 +81,12 @@ const TenttiMuokkaa = (props) => {
                     //console.log(getTokendata())
 
                     //kysymyksen lisäys
-                    
+
                     const result = await axios.post(getServer() +
-                        '/tentit/' + props.valittuTenttiId.toString() +"/kysymykset",
+                        '/tentit/' + props.valittuTenttiId.toString() + "/kysymykset",
                         {},
                         getTokendata());
-                    
+
 
                     //TODO ed. axios kutsulla token näyttää undefined vahvistaTokenissa, vaikka muilla axios kutsuilla
                     //toimii ok, miksi?, tosin muita post komentoja en ole voinut testata, enkä postmanillakaan,

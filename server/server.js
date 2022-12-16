@@ -926,6 +926,7 @@ app.delete('/vastausvaihtoehdot/:id', async (req, res) => {
 //syöte: URL id oltava kokonaisluku, JSON {"nimi":"NIMI"} NIMI oltava merkkijono
 //tulos: JSON [result.rows]
 //HTTP vastauskoodit
+//201 muokkaus ok
 //204 käsitelty, ei uutta sisältöä
 //404 resurssia ei löydy
 //422 syötesyntaksivirhe
@@ -943,12 +944,13 @@ app.put('/tentit/:id', async (req, res) => {
   }
 
   console.log("/tentit/"+id+" PUT")
-  console.log("nyt muokataan tentti ominaisuuksia")
-  console.log("tenttiID: ", id)
+  //console.log("nyt muokataan tentti ominaisuuksia")
+  //console.log("tenttiID: ", id)
+
   try {
     result = await pool.query("update tentti set nimi = ($1) where id = ($2) returning *", [nimi, id])
 
-    if (result.rowCount > 0) { //lisäys ok
+    if (result.rowCount > 0) { //muokkaus ok
       res.status(201).send(result.rows)
     }
     else { //käsitelty, uutta dataa ei luotu

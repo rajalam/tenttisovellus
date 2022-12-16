@@ -3,7 +3,7 @@ import SovellusValikko from './SovellusValikko';
 import TenttiValikko from './TenttiValikko';
 import TenttiMuokkaa from './TenttiMuokkaa';
 import { getServer, getTokendata } from './Apufunktiot';
-import { useState, useReducer, useEffect } from "react"
+import { useReducer, useEffect } from "react"
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
 
 //const SERVER = 'https://localhost:8080';
@@ -268,6 +268,20 @@ const AdminTenttiApp = () => {
                     valittuTenttiDataPaivitettava: action.payload.valittuTenttiDataPaivitettava
                 }
 
+            case "TENTTI_NIMI_MUOKKAUS_ALOITETTU":
+                console.log("TENTTI_NIMI_MUOKKAUS_ALOITETTU", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu
+                }
+
+            case "TENTTI_NIMI_MUOKKAUS_OK":
+                console.log("TENTTI_NIMI_MUOKKAUS_OK", action)
+                return {
+                    ...state,
+                    palvelinYhteysAloitettu: action.payload.palvelinYhteysAloitettu,
+                    tenttiListaDataPaivitettava: action.payload.tenttiListaDataPaivitettava
+                }
 
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
@@ -388,8 +402,7 @@ const AdminTenttiApp = () => {
                     rekisteroidyValittu={appDataTila.rekisteroidyValittu}
                     dispatch={dispatch} />
             </div>
-            {appDataTila.kirjautunut && appDataTila.virhetila &&
-                <p className='virhe'>{appDataTila.virheilmoitus}</p>}
+
 
 
             {appDataTila.kirjautunut && !appDataTila.tenttiListaDataPaivitettava &&
@@ -403,10 +416,16 @@ const AdminTenttiApp = () => {
                 <TenttiMuokkaa tenttiData={appDataTila.valittuTenttiData}
                     dispatch={dispatch}
                     valittuTenttiId={appDataTila.valittuTenttiId}
+                    valittuTenttiNimi={appDataTila.tenttiListaData[appDataTila.valittuTenttiIndex].nimi}
                 />}
-            JATKA tästä tenttidatan tulostuskomponenttien toteutusta
 
-            TODO tenttimenu alkioineen + actioneineen + virheilmot
+            {appDataTila.kirjautunut && appDataTila.virhetila &&
+                <p className='virhe'>{appDataTila.virheilmoitus}</p>}
+
+            {/* JATKA tästä tenttidatan tulostuskomponenttien toteutusta
+
+            TODO tenttimenu alkioineen + actioneineen + virheilmot */}
+
         </div>
     );
 }
