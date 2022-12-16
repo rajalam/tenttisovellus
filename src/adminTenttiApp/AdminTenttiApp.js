@@ -294,8 +294,9 @@ const AdminTenttiApp = () => {
                 console.log("LISAA_TENTTI_OK", action)
 
                 appDataTilaKopio.palvelinYhteysAloitettu = false
-                //appDataTilaKopio.tenttiListaDataPaivitettava = true
+                appDataTilaKopio.tenttiListaDataPaivitettava = true
 
+                //alustetaan eli passivoidaan aktiivinen tenttiId ja tenttiIndex
                 const tenttiIdKopio = -1
                 appDataTilaKopio.valittuTenttiId = tenttiIdKopio
 
@@ -307,13 +308,6 @@ const AdminTenttiApp = () => {
                 appDataTilaKopio.valittuTenttiDataPaivitettava = false
 
                 return appDataTilaKopio
-
-            case "TENTTILISTA_DATA_PAIVITETTAVA":
-                console.log("TENTTILISTA_DATA_PAIVITETTAVA", action)
-                return {
-                    ...state,
-                    tenttiListaDataPaivitettava: action.payload.tenttiListaDataPaivitettava
-                }
 
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)

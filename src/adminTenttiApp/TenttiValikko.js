@@ -58,20 +58,10 @@ const TenttiValikko = (props) => {
                     if (result.status === 201) { //lisäys ok
 
                         props.dispatch({
-                            type: "TENTTILISTA_DATA_PAIVITETTAVA",
-                            payload:
-                            {
-                                tenttiListaDataPaivitettava: true
-                            }
-                        })
-
-                        //finally
-                        props.dispatch({
                             type: "LISAA_TENTTI_OK",
                             payload: {
-                                palvelinYhteysAloitettu: false
-                                //aktiivinenTenttiId: result.data[0].id,
-                                //valittuTenttiDataPaivitettava: true
+                                palvelinYhteysAloitettu: false,
+                                tenttiListaDataPaivitettava: true                                
                             }
                         })
 
