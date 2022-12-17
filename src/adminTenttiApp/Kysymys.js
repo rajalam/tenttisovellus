@@ -104,7 +104,8 @@ const Kysymys = (props) => {
             <div className='vastausvaihtoehtoLista'>
                 {props.kysymys.vastausvaihtoehdot.map((vastausvaihtoehto) =>
                     <Vastausvaihtoehto dispatch={props.dispatch}
-                        vastausvaihtoehto={vastausvaihtoehto} />)}
+                        vastausvaihtoehto={vastausvaihtoehto}
+                        key={vastausvaihtoehto.vastausvaihtoehto_id} />)}
             </div>
             <div>
                 <input type="button" onClick={async (event) => {
