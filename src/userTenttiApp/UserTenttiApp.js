@@ -1,6 +1,7 @@
 import './UserTenttiApp.css'
 import SovellusValikko from './SovellusValikko';
 import { useReducer, useEffect } from "react"
+import { getServer, getTokendata } from './Apufunktiot';
 import axios from 'axios' // npm install axios , jos ei ole jo ladattu
 
 
@@ -18,7 +19,9 @@ const alkuTila = {
     valittuTenttiIndex: -1,
     valittuTenttiId: -1,
     palvelinYhteysAloitettu: false,
-    tenttiListaDataPaivitettava: true
+    tenttiListaDataPaivitettava: true,
+    tenttiListanHakuAloitettu: false,
+    tenttiListaData: []
 }
 
 
@@ -112,6 +115,23 @@ const UserTenttiApp = () => {
                     tenttiListaDataPaivitettava: true
                 }
 
+            case "TENTTI_LISTA_HAKU_ALOITETTU":
+                console.log("TENTTI_LISTA_HAKU_ALOITETTU", action)
+                return {
+                    ...state, 
+                    tenttiListanHakuAloitettu: action.payload,
+                    palvelinYhteysAloitettu: true
+                }
+
+            case "TENTTI_LISTA_HAKU_OK":
+                console.log("TENTTI_LISTA_HAKU_OK", action)
+                appDataTilaKopio.palvelinYhteysAloitettu = false
+                appDataTilaKopio.tenttiListaData = action.payload.tenttiListaData
+                appDataTilaKopio.tenttiListaDataPaivitettava = false
+                appDataTilaKopio.virhetila = false
+                appDataTilaKopio.virheilmoitus = false
+                return appDataTilaKopio
+
             case "VIRHE_TAPAHTUI":
                 console.log("VIRHE_TAPAHTUI", action)
                 return {
@@ -127,6 +147,53 @@ const UserTenttiApp = () => {
         }
 
     } //end reducer
+
+
+    useEffect(() => {
+        //kaikkien tenttien listan haku
+        const haeTenttiLista = async () => {
+
+            try {
+                dispatch({
+                    type: "TENTTI_LISTA_HAKU_ALOITETTU",
+                    payload: {
+                        tenttiListanHakuAloitettu: true
+                    }
+                })
+
+                const result = await axios.get(getServer() + '/tentit',
+                    getTokendata());
+                if (result.status === 200) { //haku ok
+                    dispatch({
+                        type: "TENTTI_LISTA_HAKU_OK",
+                        payload: {
+                            tenttiListanHakuAloitettu: false,
+                            tenttiListaData: result.data
+                        }
+                    })
+                }
+                else { //joku muu virhe
+                    throw new Error("Virhetilanne!");
+                }
+            }
+            catch (error) {
+                console.log("error tulos: ", error)
+                dispatch({
+                    type: "VIRHE_TAPAHTUI",
+                    payload:
+                    {
+                        virhetila: true,
+                        virheilmoitus: "Tenttidatan haku epäonnistui!",
+                        tenttiListanHakuAloitettu: false
+                    }
+                })
+            }
+        }
+        if (appDataTila.tenttiListaDataPaivitettava && appDataTila.kirjautunut) {
+            haeTenttiLista()
+        }
+    }, [appDataTila.tenttiListaDataPaivitettava, appDataTila.kirjautunut])
+
 
     return (
 
