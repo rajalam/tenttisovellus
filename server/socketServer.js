@@ -9,13 +9,35 @@ var readline = require('readline');
 var net = require('net');
 var serverinSoketti = null;
 
+var kielletytSanalista = ["perkele", "saatana", "homo"]
+var poistettavaSocketIndeksi = -1
+
 var chättääjät = []
 var server = net.createServer((socket) => {
 	socket.write('Echo server\r\n');
 	chättääjät.push(socket)
 
 	socket.on('data', (data) => {
-		//console.log('Palvelin vastaanotti: ' + data);
+		console.log('Palvelin vastaanotti: ' + data);
+		
+		kielletytSanalista.map((sana) => {
+			//trk. sisältääkö chättääjän syöte kielletyn sanan
+			if( data.toString('utf8').toLowerCase().includes(sana) ) {
+				//jos kielletty sana löytyi, chättääjä( socket ) poistetaan palvelimelta eli chattääjät listalta
+				console.log("kielletty sana löytyi")
+
+				chättääjät.map((alkio) => {
+					if( alkio === socket) {
+						console.log("socket löyty ok")
+						//etsi keino, miten chättääjät-listan nyk. alkiolle löytyy, jotta se voidaan poistaa listalta
+						//poistettavaSocketIndeksi = 
+					}
+				})
+				//console.log(chättääjät.find(socket))
+				//chättääjät.splice( chättääjät.findIndex(socket) )
+			}
+		})
+
         chättääjät.forEach((item)=>{
             console.log("chattääjämäärä: "+ chättääjät.length)
 			item.write(data)
