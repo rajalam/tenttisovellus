@@ -7,7 +7,7 @@ var ws = require("ws"),
 wss.on("connection", (socket, req) => {
   // (B1) REGISTER CLIENT
 
-  console.log("connection: ", socket)
+  //console.log("connection: ", socket)
 
   let id = 0;
   while (true) {
